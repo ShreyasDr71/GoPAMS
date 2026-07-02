@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: gopams_db
+    restart: always
+    environment:
+      POSTGRES_USER: gopams_user
+      POSTGRES_PASSWORD: gopams_password
+      POSTGRES_DB: gopams_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - gopams_postgres_data:/var/lib/postgresql/data
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: gopams_app
+    restart: always
+    ports:
+      - "8080:8080"
+    environment:
+      - PORT=8080
+      - GIN_MODE=release
+      - JWT_SECRET=super_secret_gopams_jwt_key_change_me_in_prod
+      - SESSION_TIMEOUT_MINUTES=15
+      - ENTERPRISE_MODE=false
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_USER=gopams_user
+      - DB_PASSWORD=gopams_password
+      - DB_NAME=gopams_db
+      - DB_SSLMODE=disable
+      - DEFAULT_ADMIN_USER=admin
+      - DEFAULT_ADMIN_PASSWORD=AdminTempPassword123!
+    depends_on:
+      - db
+
+volumes:
+  gopams_postgres_data:
+    driver: local

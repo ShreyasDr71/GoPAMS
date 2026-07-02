@@ -1,0 +1,37 @@
+# Binaries and Compiled Files
+gopams
+gopams.exe
+*.exe
+*.dll
+*.so
+*.dylib
+_obj
+_test
+
+# Environment Files
+.env
+.env.local
+.env.*.local
+
+# Docker / Database Data
+postgres_data/
+gopams_postgres_data/
+
+# IDE and Editors
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
+*~
+
+# Operating System Files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+.DS_Store
+
+# Logs
+*.log
