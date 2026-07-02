@@ -6,7 +6,7 @@ control (RBAC), approval workflows, password lifecycle management, and
 comprehensive audit logging.
 
 ----------------------------------------------------------------------------------
-# Vision
+# Vision:
 
 GoPAMS is designed as a single monolithic web application that is simple
 enough to build from scratch while being architected for future
@@ -24,16 +24,19 @@ The architecture should remain identical regardless of deployment size.
 
 -----------------------------------------------------------------------------------------
 
-#Initial Setup :
+# Initial Setup :
 
-*Default Administrator Credentials*
-"""
-Username: admin
+❗Default Administrator Credentials :
+
+
+Username: admin 
+
 Password: AdminTempPassword123! 
-"""
 
 
+Steps:
 1. Ensure Docker Desktop is running.
+
 
 2. Start the containers using :
 
@@ -41,9 +44,28 @@ Password: AdminTempPassword123!
 
 3. Access the web interface at http://localhost:8080. The application will detect the first login and guide you through updating the password.
 
+-----------------------------------------------------------------
+
 # To delete previous data:
 
-docker compose down -v
-docker compose up -d
+docker compose down -v 
+
+docker compose up -d 
+
+-------------------------------------------------------------------------
+
+# Todo Implementation:
+
+## First Phase:
+
+* ~~Auth page~~
+* ~~First time page prompt~~
+### Refinement (planned-optionally):
+* New password strength 
+* Show password 
+
+--------------------------------------------
+
+
 
 
