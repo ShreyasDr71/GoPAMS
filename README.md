@@ -19,6 +19,31 @@ Supported deployment scenarios:
 -   Enterprise IT Password & Access Management
 
 The architecture should remain identical regardless of deployment size.
+
 *The Idea is not to be ServiceNow  but a reliable working product for simple use cases.*
+
+-----------------------------------------------------------------------------------------
+
+#Initial Setup :
+
+*Default Administrator Credentials*
+"""
+Username: admin
+Password: AdminTempPassword123! 
+"""
+
+
+1. Ensure Docker Desktop is running.
+
+2. Start the containers using :
+
+"docker compose up --build -d"
+
+3. Access the web interface at http://localhost:8080. The application will detect the first login and guide you through updating the password.
+
+# To delete previous data:
+
+docker compose down -v
+docker compose up -d
 
 
