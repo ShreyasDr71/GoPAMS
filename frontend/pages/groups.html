@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Group Management - GoPAMS</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/index.css">
+    <script src="/js/auth-check.js"></script>
+</head>
+<body>
+    <div id="app-layout">
+        <!-- HEADER INJECT -->
+        <div id="navbar-container"></div>
+
+        <div class="app-container">
+            <!-- SIDEBAR INJECT -->
+            <div id="sidebar-container"></div>
+
+            <!-- MAIN CONTENT -->
+            <main class="app-main">
+                <!-- BREADCRUMBS -->
+                <div class="breadcrumbs-container">
+                    <a href="/pages/dashboard.html">Home</a>
+                    <i class="fa-solid fa-chevron-right separator"></i>
+                    <span>Administration</span>
+                    <i class="fa-solid fa-chevron-right separator"></i>
+                    <span>Group Management</span>
+                </div>
+
+                <div id="app-alert" class="alert alert-danger hidden"></div>
+
+                <!-- GROUPS PANEL -->
+                <div class="view-card">
+                    <h2 style="margin-bottom: 20px;">Group Management</h2>
+
+                    <!-- Toolbar -->
+                    <div class="workspace-toolbar">
+                        <div class="toolbar-left">
+                            <div class="search-wrapper">
+                                <i class="fa-solid fa-magnifying-glass"></i>
+                                <input type="text" id="group-search" placeholder="Search groups...">
+                            </div>
+                        </div>
+                        <div class="toolbar-right">
+                            <button id="add-group-btn" class="btn btn-secondary" style="width: auto; padding: 8px 16px; background: var(--success-confirm); color: #1E1E1E; border: 1px solid #0bb902; border-radius: 6px;">
+                                <i class="fa-solid fa-folder-plus"></i> <span>Add Group</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Groups Table -->
+                    <div class="table-responsive">
+                        <table class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>Group Name</th>
+                                    <th>Description</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="groups-table-body">
+                                <!-- populated dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Group Form Modal -->
+    <div id="group-modal" class="modal hidden">
+        <div class="modal-content">
+            <button class="modal-close" id="group-close-btn">&times;</button>
+            <h2 id="group-modal-title" style="margin-bottom: 20px;">Add Group</h2>
+            <div id="group-modal-alert" class="alert alert-danger hidden"></div>
+            <form id="group-modal-form">
+                <input type="hidden" id="group-id">
+                <div class="input-group">
+                    <label for="group-name">Group Name *</label>
+                    <div class="input-wrapper">
+                        <i class="fa-solid fa-folder"></i>
+                        <input type="text" id="group-name" required placeholder="Networking" pattern="^[A-Za-z0-9\-' ]{2,50}$">
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label for="group-desc">Description</label>
+                    <div class="input-wrapper">
+                        <i class="fa-solid fa-align-left"></i>
+                        <input type="text" id="group-desc" placeholder="Manages infrastructure networking rules">
+                    </div>
+                </div>
+                <button type="submit" id="group-submit-btn" class="btn btn-secondary">
+                    <span>Save Group</span>
+                    <i class="fa-solid fa-floppy-disk"></i>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script src="/js/api.js"></script>
+    <script src="/components/navbar.js"></script>
+    <script src="/components/sidebar.js"></script>
+    <script>
+        let allGroups = [];
+        const groupModal = document.getElementById('group-modal');
+        const groupForm = document.getElementById('group-modal-form');
+        const appAlert = document.getElementById('app-alert');
+        const modalAlert = document.getElementById('group-modal-alert');
+
+        window.addEventListener('DOMContentLoaded', () => {
+            renderNavbar();
+            renderSidebar('groups');
+            fetchGroups();
+
+            document.getElementById('add-group-btn').addEventListener('click', () => openGroupModal());
+            document.getElementById('group-close-btn').addEventListener('click', () => groupModal.classList.add('hidden'));
+            document.getElementById('group-search').addEventListener('input', renderGroups);
+            groupForm.addEventListener('submit', handleGroupSubmit);
+        });
+
+        async function fetchGroups() {
+            try {
+                allGroups = await apiFetch('/api/groups');
+                renderGroups();
+            } catch (err) {
+                showAlert(appAlert, err.message);
+            }
+        }
+
+        function renderGroups() {
+            const query = document.getElementById('group-search').value.toLowerCase();
+            const tbody = document.getElementById('groups-table-body');
+            tbody.innerHTML = '';
+
+            const filtered = allGroups.filter(g => {
+                return g.name.toLowerCase().includes(query) || 
+                       (g.description && g.description.toLowerCase().includes(query));
+            });
+
+            filtered.forEach(g => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td style="font-weight:600;">${escapeHtml(g.name)}</td>
+                    <td>${escapeHtml(g.description || '-')}</td>
+                    <td>
+                        <div class="action-btn-group">
+                            <button class="action-btn" onclick="editGroup(${g.id})"><i class="fa-solid fa-pen"></i> Edit</button>
+                            <button class="action-btn action-btn-danger" onclick="deleteGroup(${g.id})"><i class="fa-solid fa-trash"></i> Delete</button>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function openGroupModal(group = null) {
+            modalAlert.classList.add('hidden');
+            if (group) {
+                document.getElementById('group-modal-title').innerText = 'Edit Group';
+                document.getElementById('group-id').value = group.id;
+                document.getElementById('group-name').value = group.name;
+                document.getElementById('group-desc').value = group.description || '';
+            } else {
+                document.getElementById('group-modal-title').innerText = 'Add Group';
+                document.getElementById('group-id').value = '';
+                document.getElementById('group-name').value = '';
+                document.getElementById('group-desc').value = '';
+            }
+            groupModal.classList.remove('hidden');
+            
+            // Inline validations hook
+            const validate = () => {
+                document.getElementById('group-submit-btn').disabled = !groupForm.checkValidity();
+            };
+            groupForm.querySelectorAll('input').forEach(i => {
+                i.addEventListener('input', validate);
+            });
+            validate();
+        }
+
+        async function editGroup(id) {
+            try {
+                const data = await apiFetch(`/api/groups/${id}`);
+                openGroupModal(data);
+            } catch (err) {
+                showAlert(appAlert, err.message);
+            }
+        }
+
+        async function handleGroupSubmit(e) {
+            e.preventDefault();
+            modalAlert.classList.add('hidden');
+
+            const id = document.getElementById('group-id').value;
+            const payload = {
+                name: document.getElementById('group-name').value.trim(),
+                description: document.getElementById('group-desc').value.trim()
+            };
+
+            try {
+                if (id) {
+                    await apiFetch(`/api/groups/${id}`, 'PUT', payload);
+                } else {
+                    await apiFetch('/api/groups', 'POST', payload);
+                }
+                groupModal.classList.add('hidden');
+                fetchGroups();
+            } catch (err) {
+                showAlert(modalAlert, err.message);
+            }
+        }
+
+        async function deleteGroup(id) {
+            if (!confirm('Are you sure you want to delete this group?')) return;
+            try {
+                await apiFetch(`/api/groups/${id}`, 'DELETE');
+                fetchGroups();
+            } catch (err) {
+                showAlert(appAlert, err.message);
+            }
+        }
+
+        function showAlert(alertEl, text) {
+            alertEl.innerText = text;
+            alertEl.classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>

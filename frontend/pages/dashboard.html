@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - GoPAMS</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/index.css">
+    <script src="/js/auth-check.js"></script>
+    <style>
+        .profile-header {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .profile-header .avatar {
+            width: 64px;
+            height: 64px;
+            background: var(--primary);
+            color: var(--text-main);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            font-weight: 700;
+            border: 2px solid var(--primary-hover);
+        }
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .info-item {
+            background: #F9FAFB;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 16px;
+        }
+        .info-label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+        }
+        .info-value {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-main);
+        }
+        .dashboard-welcome {
+            margin-top: 30px;
+            padding: 20px;
+            background: rgba(2, 14, 238, 0.02);
+            border: 1px dashed var(--secondary);
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div id="app-layout">
+        <!-- HEADER INJECT -->
+        <div id="navbar-container"></div>
+
+        <div class="app-container">
+            <!-- SIDEBAR INJECT -->
+            <div id="sidebar-container"></div>
+
+            <!-- MAIN CONTENT -->
+            <main class="app-main">
+                <!-- BREADCRUMBS -->
+                <div class="breadcrumbs-container">
+                    <a href="/pages/dashboard.html">Home</a>
+                    <i class="fa-solid fa-chevron-right separator"></i>
+                    <span>Workspace</span>
+                    <i class="fa-solid fa-chevron-right separator"></i>
+                    <span>Profile Dashboard</span>
+                </div>
+
+                <!-- ALERT IF SETUP COMPLETED -->
+                <div id="setup-alert" class="alert alert-success hidden">
+                    <i class="fa-solid fa-circle-check"></i>
+                    <span>Security setup completed successfully! Welcome to your GoPAMS workspace.</span>
+                </div>
+
+                <!-- PROFILE DASHBOARD VIEW -->
+                <div class="view-card">
+                    <div class="profile-header">
+                        <div class="avatar" id="profile-avatar">U</div>
+                        <div class="user-meta">
+                            <h2 id="profile-name">Full Name</h2>
+                            <p style="margin-top: 4px; font-size: 0.85rem; display: flex; align-items: center; color: var(--text-muted);">
+                                <span class="pulse-dot"></span> Active secure session
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <div class="info-label">Username</div>
+                            <div class="info-value" id="profile-username">-</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Security Role</div>
+                            <div class="info-value">
+                                <span id="profile-role-badge" class="badge">Guest</span>
+                            </div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Assigned Group</div>
+                            <div class="info-value" id="profile-group">-</div>
+                        </div>
+                        <div class="info-item" id="empid-card" style="display: none;">
+                            <div class="info-label">Employee ID</div>
+                            <div class="info-value" id="profile-empid">-</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Email</div>
+                            <div class="info-value" id="profile-email">-</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Phone Number</div>
+                            <div class="info-value" id="profile-phone">-</div>
+                        </div>
+                    </div>
+
+                    <!-- Role-based Dynamic Welcome Dashboard Content -->
+                    <div class="dashboard-welcome" id="dynamic-welcome-box">
+                        <h3 style="margin-bottom: 8px;"><i class="fa-solid fa-circle-info" style="color: var(--secondary); margin-right: 6px;"></i> Console Workspace</h3>
+                        <p id="welcome-message" style="font-size: 0.9rem; color: var(--text-muted);"></p>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script src="/js/api.js"></script>
+    <script src="/components/navbar.js"></script>
+    <script src="/components/sidebar.js"></script>
+    <script>
+        const profileAvatar = document.getElementById('profile-avatar');
+        const profileName = document.getElementById('profile-name');
+        const profileUsername = document.getElementById('profile-username');
+        const profileRoleBadge = document.getElementById('profile-role-badge');
+        const profileGroup = document.getElementById('profile-group');
+        const empidCard = document.getElementById('empid-card');
+        const profileEmpid = document.getElementById('profile-empid');
+        const profileEmail = document.getElementById('profile-email');
+        const profilePhone = document.getElementById('profile-phone');
+        
+        const dynamicWelcomeBox = document.getElementById('dynamic-welcome-box');
+        const welcomeMessage = document.getElementById('welcome-message');
+        const setupAlert = document.getElementById('setup-alert');
+
+        // Check if query params show setup complete
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('setup_completed') === 'true') {
+            setupAlert.classList.remove('hidden');
+            setTimeout(() => setupAlert.classList.add('hidden'), 6000);
+        }
+
+        window.addEventListener('DOMContentLoaded', async () => {
+            // Load components
+            renderNavbar();
+            renderSidebar('dashboard');
+
+            // Render profile
+            await loadProfile();
+        });
+
+        async function loadProfile() {
+            try {
+                const data = await apiFetch('/api/auth/me');
+                const user = data.user;
+                
+                // Cache user detail update
+                localStorage.setItem('current_user', JSON.stringify(user));
+                
+                // Render layouts
+                profileName.innerText = user.full_name || 'N/A';
+                profileUsername.innerText = user.username || '-';
+                profileEmail.innerText = user.email || 'None';
+                profilePhone.innerText = user.phone_number || 'None';
+
+                const initial = user.full_name ? user.full_name.charAt(0).toUpperCase() : 'U';
+                profileAvatar.innerText = initial;
+
+                const role = user.role ? user.role.name : 'Guest';
+                profileRoleBadge.innerText = role;
+
+                if (role === 'Administrator') {
+                    profileRoleBadge.className = 'badge badge-admin';
+                } else if (role === 'Guest') {
+                    profileRoleBadge.className = 'badge badge-locked';
+                } else {
+                    profileRoleBadge.className = 'badge badge-role';
+                }
+
+                profileGroup.innerText = user.group ? user.group.name : 'No group assigned';
+
+                if (user.employee_id) {
+                    empidCard.style.display = 'block';
+                    profileEmpid.innerText = user.employee_id;
+                } else {
+                    empidCard.style.display = 'none';
+                }
+
+                // Setup Role-based Message modules
+                let msg = '';
+                if (user.is_admin) {
+                    msg = 'As an **Administrator**, you have full access to User Management, Group configurations, and Privilege Roles. Use the left sidebar tabs to audit or update accounts.';
+                } else if (role === 'Leader') {
+                    msg = 'As a **Leader**, you can approve access tickets, read rotation compliance summaries, and manage password access rules for your group team members.';
+                } else if (role === 'Auditor') {
+                    msg = 'As an **Auditor**, you have read-only access to compliance reports and audit logs. Password reveal permissions are restricted for security controls.';
+                } else {
+                    msg = 'Welcome to your employee portal. You can view your assigned passwords, request vault access permissions, or update your password dashboard configurations.';
+                }
+                welcomeMessage.innerHTML = msg.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+
+            } catch (err) {
+                console.error(err);
+            }
+        }
+    </script>
+</body>
+</html>

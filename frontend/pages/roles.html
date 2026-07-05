@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Role Management - GoPAMS</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/index.css">
+    <script src="/js/auth-check.js"></script>
+</head>
+<body>
+    <div id="app-layout">
+        <!-- HEADER INJECT -->
+        <div id="navbar-container"></div>
+
+        <div class="app-container">
+            <!-- SIDEBAR INJECT -->
+            <div id="sidebar-container"></div>
+
+            <!-- MAIN CONTENT -->
+            <main class="app-main">
+                <!-- BREADCRUMBS -->
+                <div class="breadcrumbs-container">
+                    <a href="/pages/dashboard.html">Home</a>
+                    <i class="fa-solid fa-chevron-right separator"></i>
+                    <span>Administration</span>
+                    <i class="fa-solid fa-chevron-right separator"></i>
+                    <span>Role Management</span>
+                </div>
+
+                <div id="app-alert" class="alert alert-danger hidden"></div>
+
+                <!-- ROLES WORKSPACE -->
+                <div class="view-card">
+                    <h2 style="margin-bottom: 20px;">Role Management</h2>
+
+                    <!-- Toolbar -->
+                    <div class="workspace-toolbar">
+                        <div class="toolbar-left">
+                            <div class="search-wrapper">
+                                <i class="fa-solid fa-magnifying-glass"></i>
+                                <input type="text" id="role-search" placeholder="Search roles...">
+                            </div>
+                        </div>
+                        <div class="toolbar-right">
+                            <button id="add-role-btn" class="btn btn-secondary" style="width: auto; padding: 8px 16px; background: var(--success-confirm); color: #1E1E1E; border: 1px solid #0bb902; border-radius: 6px;">
+                                <i class="fa-solid fa-shield-halved"></i> <span>Add Role</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Table -->
+                    <div class="table-responsive">
+                        <table class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>Role Name</th>
+                                    <th>Description</th>
+                                    <th>Hierarchy Level</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="roles-table-body">
+                                <!-- populated dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Role Modal -->
+    <div id="role-modal" class="modal hidden">
+        <div class="modal-content">
+            <button class="modal-close" id="role-close-btn">&times;</button>
+            <h2 id="role-modal-title" style="margin-bottom: 20px;">Add Role</h2>
+            <div id="role-modal-alert" class="alert alert-danger hidden"></div>
+            <form id="role-modal-form">
+                <input type="hidden" id="role-id">
+                <div class="input-group">
+                    <label for="role-name">Role Name *</label>
+                    <div class="input-wrapper">
+                        <i class="fa-solid fa-tag"></i>
+                        <input type="text" id="role-name" required placeholder="Leader" pattern="^[A-Za-z0-9\-' ]{2,50}$">
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label for="role-desc">Description</label>
+                    <div class="input-wrapper">
+                        <i class="fa-solid fa-align-left"></i>
+                        <input type="text" id="role-desc" placeholder="Team lead access roles">
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label for="role-level">Hierarchy Level *</label>
+                    <div class="input-wrapper">
+                        <i class="fa-solid fa-arrow-up-9-1"></i>
+                        <input type="number" id="role-level" required min="0" max="100" value="10">
+                    </div>
+                </div>
+                <button type="submit" id="role-submit-btn" class="btn btn-secondary">
+                    <span>Save Role</span>
+                    <i class="fa-solid fa-floppy-disk"></i>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script src="/js/api.js"></script>
+    <script src="/components/navbar.js"></script>
+    <script src="/components/sidebar.js"></script>
+    <script>
+        let allRoles = [];
+        const roleModal = document.getElementById('role-modal');
+        const roleForm = document.getElementById('role-modal-form');
+        const appAlert = document.getElementById('app-alert');
+        const modalAlert = document.getElementById('role-modal-alert');
+
+        window.addEventListener('DOMContentLoaded', () => {
+            renderNavbar();
+            renderSidebar('roles');
+            fetchRoles();
+
+            document.getElementById('add-role-btn').addEventListener('click', () => openRoleModal());
+            document.getElementById('role-close-btn').addEventListener('click', () => roleModal.classList.add('hidden'));
+            document.getElementById('role-search').addEventListener('input', renderRoles);
+            roleForm.addEventListener('submit', handleRoleSubmit);
+        });
+
+        async function fetchRoles() {
+            try {
+                allRoles = await apiFetch('/api/roles');
+                renderRoles();
+            } catch (err) {
+                showAlert(appAlert, err.message);
+            }
+        }
+
+        function renderRoles() {
+            const query = document.getElementById('role-search').value.toLowerCase();
+            const tbody = document.getElementById('roles-table-body');
+            tbody.innerHTML = '';
+
+            const filtered = allRoles.filter(r => {
+                return r.name.toLowerCase().includes(query) || 
+                       (r.description && r.description.toLowerCase().includes(query));
+            });
+
+            filtered.forEach(r => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td style="font-weight:600;">${escapeHtml(r.name)}</td>
+                    <td>${escapeHtml(r.description || '-')}</td>
+                    <td><span class="badge badge-user" style="background:#e5e7eb; border:none; color:var(--text-main); font-family:monospace;">${r.hierarchy_level}</span></td>
+                    <td>
+                        <div class="action-btn-group">
+                            <button class="action-btn" onclick="editRole(${r.id})"><i class="fa-solid fa-pen"></i> Edit</button>
+                            <button class="action-btn action-btn-danger" onclick="deleteRole(${r.id})"><i class="fa-solid fa-trash"></i> Delete</button>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function openRoleModal(role = null) {
+            modalAlert.classList.add('hidden');
+            if (role) {
+                document.getElementById('role-modal-title').innerText = 'Edit Role';
+                document.getElementById('role-id').value = role.id;
+                document.getElementById('role-name').value = role.name;
+                document.getElementById('role-desc').value = role.description || '';
+                document.getElementById('role-level').value = role.hierarchy_level;
+            } else {
+                document.getElementById('role-modal-title').innerText = 'Add Role';
+                document.getElementById('role-id').value = '';
+                document.getElementById('role-name').value = '';
+                document.getElementById('role-desc').value = '';
+                document.getElementById('role-level').value = 10;
+            }
+            roleModal.classList.remove('hidden');
+
+            const validate = () => {
+                document.getElementById('role-submit-btn').disabled = !roleForm.checkValidity();
+            };
+            roleForm.querySelectorAll('input').forEach(i => {
+                i.addEventListener('input', validate);
+            });
+            validate();
+        }
+
+        async function editRole(id) {
+            try {
+                const data = await apiFetch(`/api/roles/${id}`);
+                openRoleModal(data);
+            } catch (err) {
+                showAlert(appAlert, err.message);
+            }
+        }
+
+        async function handleRoleSubmit(e) {
+            e.preventDefault();
+            modalAlert.classList.add('hidden');
+
+            const id = document.getElementById('role-id').value;
+            const payload = {
+                name: document.getElementById('role-name').value.trim(),
+                description: document.getElementById('role-desc').value.trim(),
+                hierarchy_level: parseInt(document.getElementById('role-level').value, 10)
+            };
+
+            try {
+                if (id) {
+                    await apiFetch(`/api/roles/${id}`, 'PUT', payload);
+                } else {
+                    await apiFetch('/api/roles', 'POST', payload);
+                }
+                roleModal.classList.add('hidden');
+                fetchRoles();
+            } catch (err) {
+                showAlert(modalAlert, err.message);
+            }
+        }
+
+        async function deleteRole(id) {
+            if (!confirm('Are you sure you want to delete this role?')) return;
+            try {
+                await apiFetch(`/api/roles/${id}`, 'DELETE');
+                fetchRoles();
+            } catch (err) {
+                showAlert(appAlert, err.message);
+            }
+        }
+
+        function showAlert(alertEl, text) {
+            alertEl.innerText = text;
+            alertEl.classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>

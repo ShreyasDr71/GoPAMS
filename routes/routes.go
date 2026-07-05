@@ -29,7 +29,10 @@ func SetupRouter() *gin.Engine {
 
 	// Serve static files for frontend index
 	r.StaticFile("/", "./frontend/index.html")
-	// If there are other static resources like CSS/JS
+	r.Static("/css", "./frontend/css")
+	r.Static("/js", "./frontend/js")
+	r.Static("/components", "./frontend/components")
+	r.Static("/pages", "./frontend/pages")
 	r.Static("/assets", "./frontend/assets")
 
 	// API Group

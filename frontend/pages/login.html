@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Access Portal - GoPAMS</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/index.css">
+    <style>
+        .auth-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            background: var(--bg);
+        }
+        .auth-card {
+            background: #ffffff;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 30px;
+            width: 100%;
+            max-width: 440px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            position: relative;
+        }
+        .auth-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--primary);
+            border-top-left-radius: 8px;
+            border-top-right-radius: 8px;
+        }
+        .auth-brand {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        .auth-brand-logo {
+            font-size: 2.2rem;
+            font-family: 'Outfit', sans-serif;
+            font-weight: 700;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        .auth-brand-logo i {
+            color: var(--primary);
+        }
+        .auth-brand-tagline {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="auth-container">
+        <div class="auth-card">
+            <!-- Brand -->
+            <div class="auth-brand">
+                <div class="auth-brand-logo">
+                    <i class="fa-solid fa-shield-halved"></i> GoPAMS
+                </div>
+                <div class="auth-brand-tagline">Password & Access Management System</div>
+            </div>
+
+            <!-- Login Form Section -->
+            <div id="login-section">
+                <h2 style="margin-bottom: 20px; text-align: center;">Sign In</h2>
+                <div id="login-alert" class="alert alert-danger hidden"></div>
+                <form id="login-form">
+                    <div class="input-group">
+                        <label for="username">Username</label>
+                        <div class="input-wrapper">
+                            <i class="fa-solid fa-user"></i>
+                            <input type="text" id="username" placeholder="Username" required autocomplete="username" pattern="^[A-Za-z0-9_]{3,30}$">
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label for="password">Password</label>
+                        <div class="input-wrapper">
+                            <i class="fa-solid fa-lock"></i>
+                            <input type="password" id="password" placeholder="Password" required autocomplete="current-password">
+                        </div>
+                    </div>
+                    <button type="submit" id="login-submit-btn" class="btn btn-secondary" style="margin-top: 10px;">
+                        <span>Sign In</span>
+                        <i class="fa-solid fa-arrow-right-to-bracket"></i>
+                    </button>
+                </form>
+            </div>
+
+            <!-- Forced Password Reset Section -->
+            <div id="pwd-change-section" class="hidden">
+                <h2 style="margin-bottom: 10px; text-align: center;">Setup Security</h2>
+                <div class="alert alert-warning" style="margin-bottom: 20px; font-size: 0.85rem;">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                    <span>Please update your temporary password to continue.</span>
+                </div>
+                <div id="pwd-alert" class="alert alert-danger hidden"></div>
+                <form id="pwd-change-form">
+                    <div class="input-group">
+                        <label for="current-password">Temporary Password</label>
+                        <div class="input-wrapper">
+                            <i class="fa-solid fa-lock-open"></i>
+                            <input type="password" id="current-password" placeholder="Temporary Password" required autocomplete="current-password">
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label for="new-password">New Password</label>
+                        <div class="input-wrapper">
+                            <i class="fa-solid fa-key"></i>
+                            <input type="password" id="new-password" placeholder="At least 8 characters" required autocomplete="new-password">
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label for="confirm-password">Confirm Password</label>
+                        <div class="input-wrapper">
+                            <i class="fa-solid fa-check-double"></i>
+                            <input type="password" id="confirm-password" placeholder="Confirm Password" required autocomplete="new-password">
+                        </div>
+                    </div>
+
+                    <!-- Password strength visual checklist -->
+                    <div class="strength-meter">
+                        <div class="strength-bar">
+                            <div id="strength-fill" class="strength-fill"></div>
+                        </div>
+                        <div id="strength-label" class="strength-label" style="color: var(--text-light);">Strength: None</div>
+                        <ul class="requirements-list">
+                            <li id="req-length"><i class="fa-regular fa-circle-xmark"></i> At least 8 characters</li>
+                            <li id="req-upper"><i class="fa-regular fa-circle-xmark"></i> At least 1 uppercase letter</li>
+                            <li id="req-lower"><i class="fa-regular fa-circle-xmark"></i> At least 1 lowercase letter</li>
+                            <li id="req-number"><i class="fa-regular fa-circle-xmark"></i> At least 1 number</li>
+                            <li id="req-special"><i class="fa-regular fa-circle-xmark"></i> At least 1 special character</li>
+                        </ul>
+                    </div>
+
+                    <button type="submit" id="pwd-submit-btn" class="btn btn-secondary" style="margin-top: 20px;" disabled>
+                        <span>Update Password</span>
+                        <i class="fa-solid fa-check-double"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/api.js"></script>
+    <script>
+        const loginSection = document.getElementById('login-section');
+        const loginForm = document.getElementById('login-form');
+        const loginAlert = document.getElementById('login-alert');
+        const usernameInput = document.getElementById('username');
+        const passwordInput = document.getElementById('password');
+
+        const pwdChangeSection = document.getElementById('pwd-change-section');
+        const pwdChangeForm = document.getElementById('pwd-change-form');
+        const pwdAlert = document.getElementById('pwd-alert');
+        const currentPasswordInput = document.getElementById('current-password');
+        const newPasswordInput = document.getElementById('new-password');
+        const confirmPasswordInput = document.getElementById('confirm-password');
+
+        const strengthFill = document.getElementById('strength-fill');
+        const strengthLabel = document.getElementById('strength-label');
+        const pwdSubmitBtn = document.getElementById('pwd-submit-btn');
+
+        // Extract query parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('force_change') === 'true') {
+            showSection('pwd-change');
+        } else if (urlParams.get('session_expired') === 'true') {
+            showAlert(loginAlert, 'Session expired. Please sign in again.', 'danger');
+        }
+
+        function showSection(name) {
+            loginSection.classList.add('hidden');
+            pwdChangeSection.classList.add('hidden');
+            if (name === 'login') {
+                loginSection.classList.remove('hidden');
+            } else {
+                pwdChangeSection.classList.remove('hidden');
+            }
+        }
+
+        function showAlert(alertEl, text, type = 'danger') {
+            alertEl.innerText = text;
+            alertEl.className = `alert alert-${type}`;
+            alertEl.classList.remove('hidden');
+        }
+
+        // Live password validation checks
+        newPasswordInput.addEventListener('input', () => {
+            const pwd = newPasswordInput.value;
+            
+            // Rules
+            const hasLength = pwd.length >= 8;
+            const hasUpper = /[A-Z]/.test(pwd);
+            const hasLower = /[a-z]/.test(pwd);
+            const hasNumber = /[0-9]/.test(pwd);
+            const hasSpecial = /[^A-Za-z0-9]/.test(pwd);
+
+            // Update DOM indicators
+            updateReqIndicator('req-length', hasLength);
+            updateReqIndicator('req-upper', hasUpper);
+            updateReqIndicator('req-lower', hasLower);
+            updateReqIndicator('req-number', hasNumber);
+            updateReqIndicator('req-special', hasSpecial);
+
+            // Strength Calculation
+            let score = 0;
+            if (hasLength) score++;
+            if (hasUpper) score++;
+            if (hasLower) score++;
+            if (hasNumber) score++;
+            if (hasSpecial) score++;
+
+            let fillWidth = '0%';
+            let fillColor = 'var(--danger)';
+            let fillText = 'Weak';
+
+            if (score === 1 || score === 2) {
+                fillWidth = '33%';
+                fillColor = 'var(--danger)';
+                fillText = 'Weak';
+            } else if (score === 3 || score === 4) {
+                fillWidth = '66%';
+                fillColor = 'var(--warning)';
+                fillText = 'Medium';
+            } else if (score === 5) {
+                fillWidth = '100%';
+                fillColor = 'var(--success-confirm)';
+                fillText = 'Strong';
+            }
+
+            strengthFill.style.width = fillWidth;
+            strengthFill.style.backgroundColor = fillColor;
+            strengthLabel.innerText = 'Strength: ' + fillText;
+            strengthLabel.style.color = fillColor;
+
+            // Form Submit Enabling
+            const isMatch = pwd === confirmPasswordInput.value;
+            pwdSubmitBtn.disabled = !(score === 5 && isMatch && currentPasswordInput.value);
+        });
+
+        confirmPasswordInput.addEventListener('input', () => {
+            const pwd = newPasswordInput.value;
+            const isMatch = pwd === confirmPasswordInput.value;
+            const score = [
+                pwd.length >= 8,
+                /[A-Z]/.test(pwd),
+                /[a-z]/.test(pwd),
+                /[0-9]/.test(pwd),
+                /[^A-Za-z0-9]/.test(pwd)
+            ].filter(Boolean).length;
+
+            pwdSubmitBtn.disabled = !(score === 5 && isMatch && currentPasswordInput.value);
+        });
+
+        currentPasswordInput.addEventListener('input', () => {
+            const pwd = newPasswordInput.value;
+            const isMatch = pwd === confirmPasswordInput.value;
+            const score = [
+                pwd.length >= 8,
+                /[A-Z]/.test(pwd),
+                /[a-z]/.test(pwd),
+                /[0-9]/.test(pwd),
+                /[^A-Za-z0-9]/.test(pwd)
+            ].filter(Boolean).length;
+
+            pwdSubmitBtn.disabled = !(score === 5 && isMatch && currentPasswordInput.value);
+        });
+
+        function updateReqIndicator(elementId, isValid) {
+            const el = document.getElementById(elementId);
+            if (isValid) {
+                el.className = 'valid';
+                el.querySelector('i').className = 'fa-solid fa-circle-check';
+            } else {
+                el.className = '';
+                el.querySelector('i').className = 'fa-regular fa-circle-xmark';
+            }
+        }
+
+        // Login Handler
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            loginAlert.classList.add('hidden');
+
+            const payload = {
+                username: usernameInput.value.trim(),
+                password: passwordInput.value
+            };
+
+            try {
+                const data = await apiFetch('/api/auth/login', 'POST', payload);
+
+                // Save token & user
+                setAuthToken(data.token);
+                localStorage.setItem('current_user', JSON.stringify(data.user));
+
+                if (data.must_change_password) {
+                    currentPasswordInput.value = payload.password; // prefill temporary pass
+                    showSection('pwd-change');
+                } else {
+                    window.location.href = '/pages/dashboard.html';
+                }
+            } catch (err) {
+                showAlert(loginAlert, err.message, 'danger');
+            }
+        });
+
+        // Change Password Handler
+        pwdChangeForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            pwdAlert.classList.add('hidden');
+
+            const payload = {
+                current_password: currentPasswordInput.value,
+                new_password: newPasswordInput.value
+            };
+
+            try {
+                const data = await apiFetch('/api/auth/change-password', 'POST', payload);
+                setAuthToken(data.token);
+                
+                // Fetch profile updates
+                const userObj = await apiFetch('/api/auth/me');
+                localStorage.setItem('current_user', JSON.stringify(userObj.user));
+
+                window.location.href = '/pages/dashboard.html?setup_completed=true';
+            } catch (err) {
+                showAlert(pwdAlert, err.message, 'danger');
+            }
+        });
+    </script>
+</body>
+</html>

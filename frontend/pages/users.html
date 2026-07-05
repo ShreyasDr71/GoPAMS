@@ -1,0 +1,916 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Management - GoPAMS</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/index.css">
+    <script src="/js/auth-check.js"></script>
+</head>
+<body>
+    <div id="app-layout">
+        <!-- HEADER INJECT -->
+        <div id="navbar-container"></div>
+
+        <div class="app-container">
+            <!-- SIDEBAR INJECT -->
+            <div id="sidebar-container"></div>
+
+            <!-- MAIN CONTENT -->
+            <main class="app-main">
+                <!-- BREADCRUMBS -->
+                <div class="breadcrumbs-container">
+                    <a href="/pages/dashboard.html">Home</a>
+                    <i class="fa-solid fa-chevron-right separator"></i>
+                    <span>Administration</span>
+                    <i class="fa-solid fa-chevron-right separator"></i>
+                    <span>User Management</span>
+                </div>
+
+                <div id="app-alert" class="alert alert-danger hidden"></div>
+
+                <!-- USER MANAGEMENT WORKSPACE -->
+                <div class="view-card">
+                    <h2 style="margin-bottom: 20px;">User Management</h2>
+
+                    <!-- Toolbar -->
+                    <div class="workspace-toolbar">
+                        <div class="toolbar-left">
+                            <div class="search-wrapper">
+                                <i class="fa-solid fa-magnifying-glass"></i>
+                                <input type="text" id="user-search-input" placeholder="Search users...">
+                            </div>
+                            <select id="user-status-filter" class="toolbar-select">
+                                <option value="">All Statuses</option>
+                                <option value="Active">Active</option>
+                                <option value="Pending">Pending</option>
+                                <option value="Disabled">Disabled</option>
+                                <option value="Locked">Locked</option>
+                            </select>
+                            <select id="user-group-filter" class="toolbar-select">
+                                <option value="">All Groups</option>
+                            </select>
+                        </div>
+                        <div class="toolbar-right">
+                            <button id="add-user-btn" class="btn btn-secondary" style="width: auto; padding: 8px 16px; background: var(--success-confirm); color: #1E1E1E; border: 1px solid #0bb902; border-radius: 6px;">
+                                <i class="fa-solid fa-user-plus"></i> <span>Add User</span>
+                            </button>
+                            <select id="bulk-actions" class="toolbar-select">
+                                <option value="">Bulk Actions</option>
+                                <option value="enable">Enable Accounts</option>
+                                <option value="disable">Disable Accounts</option>
+                            </select>
+                            <button id="export-btn" class="btn btn-secondary" style="width: auto; padding: 8px 16px; background: #e5e7eb; border-color: #d1d5db; color: var(--text-main);">
+                                <i class="fa-solid fa-download"></i> <span>Export</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Responsive Table -->
+                    <div class="table-responsive">
+                        <table class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>Employee ID</th>
+                                    <th>Full Name</th>
+                                    <th>Username</th>
+                                    <th>Group</th>
+                                    <th>Role</th>
+                                    <th>Status</th>
+                                    <th>Phone</th>
+                                    <th>Last Login</th>
+                                    <th onclick="event.stopPropagation();">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="users-table-body">
+                                <!-- populated dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- ADD USER 4-STEP WIZARD MODAL -->
+    <div id="add-user-modal" class="modal hidden">
+        <div class="modal-content">
+            <button class="modal-close" id="wizard-close-btn">&times;</button>
+            <h2 id="wizard-title" style="margin-bottom: 20px;">Add New User</h2>
+            
+            <div id="wizard-alert" class="alert alert-danger hidden"></div>
+
+            <!-- Wizard Steps Progress Bar -->
+            <div class="wizard-steps">
+                <div class="step-indicator active" id="step-ind-1">1</div>
+                <div class="step-indicator" id="step-ind-2">2</div>
+                <div class="step-indicator" id="step-ind-3">3</div>
+                <div class="step-indicator" id="step-ind-4">4</div>
+            </div>
+
+            <!-- Forms Container -->
+            <form id="wizard-form" novalidate>
+                <!-- STEP 1: IDENTITY -->
+                <div class="wizard-content-step active" id="wizard-step-1">
+                    <h3 style="margin-bottom: 15px;">Step 1: Identity Profile</h3>
+                    
+                    <div class="input-group">
+                        <label for="wiz-fullname">Full Name *</label>
+                        <div class="input-wrapper">
+                            <i class="fa-solid fa-id-card"></i>
+                            <input type="text" id="wiz-fullname" required pattern="^[A-Za-z\-' ]{2,100}$" placeholder="John Doe">
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="wiz-username">Username *</label>
+                        <div class="input-wrapper">
+                            <i class="fa-solid fa-user"></i>
+                            <input type="text" id="wiz-username" required pattern="^[A-Za-z0-9_]{3,30}$" placeholder="johndoe">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="input-group">
+                            <label for="wiz-phone">Phone Number *</label>
+                            <div class="input-wrapper">
+                                <i class="fa-solid fa-phone"></i>
+                                <input type="text" id="wiz-phone" required pattern="^\+?[0-9]{10,15}$" placeholder="+123456789">
+                            </div>
+                        </div>
+                        <div class="input-group">
+                            <label for="wiz-email">Email (Optional)</label>
+                            <div class="input-wrapper">
+                                <i class="fa-solid fa-envelope"></i>
+                                <input type="email" id="wiz-email" placeholder="john@example.com">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="input-group" id="wiz-empid-group">
+                        <label for="wiz-empid">Employee ID</label>
+                        <div class="input-wrapper">
+                            <i class="fa-solid fa-hashtag"></i>
+                            <input type="text" id="wiz-empid" pattern="^[A-Za-z0-9-]{3,20}$" placeholder="EMP-001">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- STEP 2: ORGANIZATION -->
+                <div class="wizard-content-step" id="wizard-step-2">
+                    <h3 style="margin-bottom: 15px;">Step 2: Organization Settings</h3>
+                    
+                    <div class="input-group">
+                        <label for="wiz-group">Assign Group *</label>
+                        <select id="wiz-group" required class="toolbar-select" style="width: 100%; padding: 12px;">
+                            <!-- populated dynamically -->
+                        </select>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="wiz-role">Assign Role *</label>
+                        <select id="wiz-role" required class="toolbar-select" style="width: 100%; padding: 12px;">
+                            <!-- populated dynamically -->
+                        </select>
+                    </div>
+
+                    <div style="background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 15px; margin-top: 15px;">
+                        <h4 style="font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); margin-bottom: 8px;">Inherited Privileges Preview</h4>
+                        <p id="wiz-privileges-preview" style="font-size: 0.9rem; color: var(--text-main); font-weight: 500;">
+                            Select a role to preview capabilities.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- STEP 3: SECURITY OPTIONS -->
+                <div class="wizard-content-step" id="wizard-step-3">
+                    <h3 style="margin-bottom: 15px;">Step 3: Security & Credentials</h3>
+                    
+                    <div class="input-group" style="margin-bottom: 15px;">
+                        <label style="margin-bottom: 8px;">Password Strategy</label>
+                        <div style="display: flex; gap: 20px;">
+                            <label style="display:flex; align-items:center; gap:6px; cursor:pointer; font-weight:normal;">
+                                <input type="radio" name="pass-strategy" id="strategy-gen" checked value="generate">
+                                <span>Generate Secure Password (Recommended)</span>
+                            </label>
+                            <label style="display:flex; align-items:center; gap:6px; cursor:pointer; font-weight:normal;">
+                                <input type="radio" name="pass-strategy" id="strategy-custom" value="custom">
+                                <span>Enter Temporary Password</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Custom temporary pass input group -->
+                    <div class="input-group hidden" id="wiz-custom-pass-group">
+                        <label for="wiz-custom-password">Temporary Password *</label>
+                        <div class="input-wrapper">
+                            <i class="fa-solid fa-lock"></i>
+                            <input type="password" id="wiz-custom-password" placeholder="Enter custom temporary password">
+                        </div>
+                    </div>
+
+                    <!-- Generate settings options -->
+                    <div id="wiz-gen-pass-options" style="background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 15px; margin-bottom: 15px;">
+                        <h4 style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 10px;">Secure Generator Options</h4>
+                        <div class="form-row">
+                            <div class="input-group">
+                                <label for="wiz-gen-length">Password Length</label>
+                                <input type="number" id="wiz-gen-length" min="12" max="32" value="16" class="toolbar-select" style="padding: 6px;">
+                            </div>
+                            <div class="input-group" style="justify-content: flex-end; padding-bottom: 8px;">
+                                <label style="display:flex; align-items:center; gap:6px; cursor:pointer; font-weight:normal; margin-bottom:0;">
+                                    <input type="checkbox" id="wiz-gen-symbols" checked style="width:16px; height:16px;">
+                                    <span>Include Special Symbols</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="input-group" style="display:flex; align-items:center; gap:8px; flex-direction:row; margin-bottom: 10px;">
+                        <input type="checkbox" id="wiz-force-change" checked style="width: 18px; height: 18px; cursor: pointer;">
+                        <label for="wiz-force-change" style="margin-bottom:0; cursor:pointer;">Force password change on first login</label>
+                    </div>
+                </div>
+
+                <!-- STEP 4: REVIEW & CONFIRM -->
+                <div class="wizard-content-step" id="wizard-step-4">
+                    <h3 style="margin-bottom: 15px;">Step 4: Review Summary</h3>
+                    
+                    <div style="background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 20px;">
+                        <table style="width:100%; border-collapse: collapse; font-size:0.9rem;">
+                            <tr style="border-bottom: 1px solid var(--border);"><td style="padding: 8px 0; color:var(--text-muted);">Full Name:</td><td id="review-fullname" style="font-weight:600; text-align:right;">-</td></tr>
+                            <tr style="border-bottom: 1px solid var(--border);"><td style="padding: 8px 0; color:var(--text-muted);">Username:</td><td id="review-username" style="font-weight:600; font-family:monospace; text-align:right;">-</td></tr>
+                            <tr style="border-bottom: 1px solid var(--border);"><td style="padding: 8px 0; color:var(--text-muted);">Employee ID:</td><td id="review-empid" style="font-weight:600; font-family:monospace; text-align:right;">-</td></tr>
+                            <tr style="border-bottom: 1px solid var(--border);"><td style="padding: 8px 0; color:var(--text-muted);">Email / Phone:</td><td id="review-contact" style="font-weight:600; text-align:right;">-</td></tr>
+                            <tr style="border-bottom: 1px solid var(--border);"><td style="padding: 8px 0; color:var(--text-muted);">Group / Role:</td><td id="review-org" style="font-weight:600; text-align:right;">-</td></tr>
+                            <tr><td style="padding: 8px 0; color:var(--text-muted);">Password Strategy:</td><td id="review-strategy" style="font-weight:600; text-align:right;">-</td></tr>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Wizard Actions -->
+                <div class="wizard-nav-buttons">
+                    <button type="button" class="btn btn-secondary" id="wiz-prev-btn" style="background:#e5e7eb; border-color:#d1d5db; color:var(--text-main); visibility: hidden;">
+                        <i class="fa-solid fa-arrow-left"></i> <span>Back</span>
+                    </button>
+                    <button type="button" class="btn btn-secondary" id="wiz-next-btn">
+                        <span>Next</span> <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- GENERATED PASSWORD RESULT MODAL -->
+    <div id="result-modal" class="modal hidden">
+        <div class="modal-content" style="max-width: 460px;">
+            <button class="modal-close" id="result-close-btn">&times;</button>
+            <h2 style="margin-bottom: 10px;"><i class="fa-solid fa-circle-check" style="color: var(--success-confirm); margin-right: 6px;"></i> User Created</h2>
+            <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 15px;">
+                The temporary password is shown **only once**. Please copy it and share it securely.
+            </p>
+
+            <div class="input-group">
+                <label>Temporary Password</label>
+                <div style="display: flex; gap: 10px;">
+                    <div class="input-wrapper" style="flex: 1;">
+                        <i class="fa-solid fa-key"></i>
+                        <input type="text" id="result-pass-input" readonly style="background:#F1F3F5; font-family: monospace; font-size: 1.1rem; padding-left:42px;">
+                    </div>
+                    <button type="button" id="copy-pass-btn" class="btn btn-secondary" style="width: auto; padding: 0 16px;">
+                        <i class="fa-solid fa-copy"></i>
+                    </button>
+                </div>
+            </div>
+
+            <button type="button" class="btn btn-secondary" id="result-done-btn" style="margin-top: 20px;">
+                <span>Done</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- SECURE USER DETAILS SLIDE-OUT DRAWER -->
+    <div id="details-drawer" class="details-drawer">
+        <div class="drawer-header">
+            <h2 id="drawer-title">User Details</h2>
+            <button class="modal-close" id="drawer-close-btn" style="position:static; font-size: 1.5rem;">&times;</button>
+        </div>
+        
+        <!-- Tabs selection -->
+        <div class="drawer-tabs">
+            <button class="tab-btn active" onclick="switchDrawerTab('tab-general')">General</button>
+            <button class="tab-btn" onclick="switchDrawerTab('tab-org')">Organization</button>
+            <button class="tab-btn" onclick="switchDrawerTab('tab-security')">Security</button>
+        </div>
+
+        <div class="drawer-body">
+            <div id="drawer-alert" class="alert alert-danger hidden"></div>
+
+            <!-- Tab 1: General Info -->
+            <div class="tab-content active" id="tab-general">
+                <div class="input-group">
+                    <label>Full Name</label>
+                    <div class="input-wrapper">
+                        <i class="fa-solid fa-id-card"></i>
+                        <input type="text" id="det-fullname" required pattern="^[A-Za-z\-' ]{2,100}$">
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label>Username (Read-only)</label>
+                    <div class="input-wrapper">
+                        <i class="fa-solid fa-user"></i>
+                        <input type="text" id="det-username" disabled style="background:#F9FAFB;">
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label>Phone Number</label>
+                    <div class="input-wrapper">
+                        <i class="fa-solid fa-phone"></i>
+                        <input type="text" id="det-phone" pattern="^\+?[0-9]{10,15}$">
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label>Email Address</label>
+                    <div class="input-wrapper">
+                        <i class="fa-solid fa-envelope"></i>
+                        <input type="email" id="det-email">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab 2: Organization details -->
+            <div class="tab-content" id="tab-org">
+                <div class="input-group">
+                    <label for="det-group">Group</label>
+                    <select id="det-group" class="toolbar-select" style="width:100%; padding:12px;">
+                        <!-- populated dynamically -->
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label for="det-role">Role</label>
+                    <select id="det-role" class="toolbar-select" style="width:100%; padding:12px;">
+                        <!-- populated dynamically -->
+                    </select>
+                </div>
+                <div class="input-group" id="det-empid-group">
+                    <label for="det-empid">Employee ID</label>
+                    <div class="input-wrapper">
+                        <i class="fa-solid fa-hashtag"></i>
+                        <input type="text" id="det-empid" pattern="^[A-Za-z0-9-]{3,20}$">
+                    </div>
+                </div>
+                <div class="input-group" style="display:flex; align-items:center; gap:10px; flex-direction:row; margin-top: 10px;">
+                    <input type="checkbox" id="det-isadmin" style="width:18px; height:18px; cursor:pointer;">
+                    <label for="det-isadmin" style="margin-bottom:0; cursor:pointer; font-weight:600;">Grant Administrator Privileges</label>
+                </div>
+            </div>
+
+            <!-- Tab 3: Security actions -->
+            <div class="tab-content" id="tab-security">
+                <div class="input-group">
+                    <label>Account Status</label>
+                    <select id="det-status" class="toolbar-select" style="width:100%; padding:12px; margin-bottom: 20px;">
+                        <option value="Active">Active</option>
+                        <option value="Pending">Pending</option>
+                        <option value="Disabled">Disabled</option>
+                        <option value="Locked">Locked</option>
+                    </select>
+                </div>
+
+                <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 15px;">
+                    <button type="button" class="btn" id="btn-det-reset" style="background: var(--warning); border-color:#d55c02; color:white;">
+                        <i class="fa-solid fa-key"></i> <span>Reset Password</span>
+                    </button>
+                    <button type="button" class="btn" id="btn-det-save" style="background: var(--secondary); color:white;">
+                        <i class="fa-solid fa-floppy-disk"></i> <span>Save Changes</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/api.js"></script>
+    <script src="/components/navbar.js"></script>
+    <script src="/components/sidebar.js"></script>
+    <script>
+        let enterpriseMode = false;
+        let allUsers = [];
+        let allGroups = [];
+        let allRoles = [];
+        
+        let currentUserId = null;
+        let wizardStep = 1;
+
+        // Add user modal elements
+        const addModal = document.getElementById('add-user-modal');
+        const wizardForm = document.getElementById('wizard-form');
+        const wizardPrevBtn = document.getElementById('wiz-prev-btn');
+        const wizardNextBtn = document.getElementById('wiz-next-btn');
+
+        // Drawer elements
+        const detailsDrawer = document.getElementById('details-drawer');
+        const drawerAlert = document.getElementById('drawer-alert');
+
+        window.addEventListener('DOMContentLoaded', async () => {
+            renderNavbar();
+            renderSidebar('users');
+            
+            // Check enterprise mode status
+            const userJson = localStorage.getItem('current_user');
+            const cachedUser = userJson ? JSON.parse(userJson) : null;
+            
+            // Get configurations from server me
+            try {
+                const configData = await apiFetch('/api/auth/me');
+                enterpriseMode = configData.enterprise_mode;
+            } catch (e) {
+                // fallback
+                enterpriseMode = false;
+            }
+
+            // Sync Employee ID visibility
+            if (!enterpriseMode) {
+                document.getElementById('wiz-empid-group').style.display = 'none';
+                document.getElementById('det-empid-group').style.display = 'none';
+            }
+
+            // Load data
+            await fetchUsers();
+            
+            // Register listeners
+            document.getElementById('add-user-btn').addEventListener('click', () => openWizard());
+            document.getElementById('wizard-close-btn').addEventListener('click', () => addModal.classList.add('hidden'));
+            
+            // Filters
+            document.getElementById('user-search-input').addEventListener('input', renderUserTable);
+            document.getElementById('user-status-filter').addEventListener('change', renderUserTable);
+            document.getElementById('user-group-filter').addEventListener('change', renderUserTable);
+
+            // Wizard navigation
+            wizardPrevBtn.addEventListener('click', navigateWizardPrev);
+            wizardNextBtn.addEventListener('click', navigateWizardNext);
+
+            // Strategy toggle
+            document.getElementById('strategy-gen').addEventListener('change', togglePasswordStrategy);
+            document.getElementById('strategy-custom').addEventListener('change', togglePasswordStrategy);
+
+            // Result closures
+            document.getElementById('result-close-btn').addEventListener('click', () => document.getElementById('result-modal').classList.add('hidden'));
+            document.getElementById('result-done-btn').addEventListener('click', () => document.getElementById('result-modal').classList.add('hidden'));
+            
+            // Copy
+            document.getElementById('copy-pass-btn').addEventListener('click', () => {
+                const valEl = document.getElementById('result-pass-input');
+                valEl.select();
+                navigator.clipboard.writeText(valEl.value).then(() => {
+                    alert('Temporary password copied!');
+                });
+            });
+
+            // Drawer closers
+            document.getElementById('drawer-close-btn').addEventListener('click', () => detailsDrawer.classList.remove('open'));
+            
+            // Drawer Action
+            document.getElementById('btn-det-save').addEventListener('click', saveDrawerDetails);
+            document.getElementById('btn-det-reset').addEventListener('click', resetDrawerPassword);
+        });
+
+        // --- Fetch Users ---
+        async function fetchUsers() {
+            try {
+                allUsers = await apiFetch('/api/users');
+                allGroups = await apiFetch('/api/groups');
+                allRoles = await apiFetch('/api/roles');
+
+                // Populate filters & dropdowns
+                populateGroupFilter();
+                renderUserTable();
+            } catch (err) {
+                console.error('Failed to retrieve dashboard records', err);
+            }
+        }
+
+        function populateGroupFilter() {
+            const filterSelect = document.getElementById('user-group-filter');
+            filterSelect.innerHTML = '<option value="">All Groups</option>';
+            allGroups.forEach(g => {
+                const opt = document.createElement('option');
+                opt.value = g.id;
+                opt.innerText = g.name;
+                filterSelect.appendChild(opt);
+            });
+        }
+
+        // --- Render Tables ---
+        function renderUserTable() {
+            const query = document.getElementById('user-search-input').value.toLowerCase();
+            const statusFilter = document.getElementById('user-status-filter').value;
+            const groupFilter = document.getElementById('user-group-filter').value;
+            
+            const tbody = document.getElementById('users-table-body');
+            tbody.innerHTML = '';
+
+            const filtered = allUsers.filter(u => {
+                const searchStr = (u.full_name + ' ' + u.username + ' ' + (u.email || '') + ' ' + (u.employee_id || '')).toLowerCase();
+                const matchesSearch = searchStr.includes(query);
+                const matchesStatus = !statusFilter || u.status === statusFilter;
+                const matchesGroup = !groupFilter || (u.group_id && u.group_id == groupFilter);
+                return matchesSearch && matchesStatus && matchesGroup;
+            });
+
+            filtered.forEach(u => {
+                const roleName = u.role ? u.role.name : 'Guest';
+                const groupName = u.group ? u.group.name : 'None';
+                const lastLogin = u.last_login_at ? new Date(u.last_login_at).toLocaleString() : 'Never';
+                
+                let badgeClass = 'badge-active';
+                if (u.status === 'Pending') badgeClass = 'badge-pending';
+                else if (u.status === 'Disabled') badgeClass = 'badge-disabled';
+                else if (u.status === 'Locked') badgeClass = 'badge-locked';
+
+                const tr = document.createElement('tr');
+                tr.addEventListener('click', () => openDetailsDrawer(u));
+                tr.innerHTML = `
+                    <td style="font-family:monospace; font-weight:600;">${escapeHtml(u.employee_id || '-')}</td>
+                    <td style="font-weight:600;">
+                        ${escapeHtml(u.full_name)}
+                        ${u.is_admin ? '<span class="badge badge-admin" style="font-size:0.65rem; padding: 2px 4px; margin-left: 5px;">Admin</span>' : ''}
+                    </td>
+                    <td style="font-family:monospace;">${escapeHtml(u.username)}</td>
+                    <td><span class="badge badge-group">${groupName}</span></td>
+                    <td><span class="badge ${roleName === 'Administrator' ? 'badge-admin' : 'badge-role'}">${roleName}</span></td>
+                    <td><span class="badge ${badgeClass}">${u.status || 'Active'}</span></td>
+                    <td>${escapeHtml(u.phone_number || '-')}</td>
+                    <td style="font-size:0.8rem; color:var(--text-muted);">${lastLogin}</td>
+                    <td onclick="event.stopPropagation();">
+                        <button class="action-btn action-btn-danger" onclick="deleteUserRecord(${u.id})"><i class="fa-solid fa-trash"></i> Delete</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        async function deleteUserRecord(id) {
+            if (!confirm('Are you sure you want to delete this user?')) return;
+            try {
+                await apiFetch(`/api/users/${id}`, 'DELETE');
+                await fetchUsers();
+            } catch (err) {
+                alert(err.message);
+            }
+        }
+
+        // --- Details Drawer Switch ---
+        function switchDrawerTab(tabId) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            // Find btn based on onclick string matching
+            const targetBtn = Array.from(document.querySelectorAll('.tab-btn')).find(b => b.getAttribute('onclick').includes(tabId));
+            if (targetBtn) targetBtn.classList.add('active');
+
+            const content = document.getElementById(tabId);
+            if (content) content.classList.add('active');
+        }
+
+        function openDetailsDrawer(user) {
+            currentUserId = user.id;
+            drawerAlert.classList.add('hidden');
+
+            document.getElementById('det-fullname').value = user.full_name;
+            document.getElementById('det-username').value = user.username;
+            document.getElementById('det-phone').value = user.phone_number || '';
+            document.getElementById('det-email').value = user.email || '';
+            document.getElementById('det-status').value = user.status || 'Active';
+            document.getElementById('det-isadmin').checked = user.is_admin;
+
+            if (enterpriseMode) {
+                document.getElementById('det-empid').value = user.employee_id || '';
+            }
+
+            // Populate organization dropdown selectors
+            const groupSelect = document.getElementById('det-group');
+            groupSelect.innerHTML = '<option value="">No group assigned</option>';
+            allGroups.forEach(g => {
+                const opt = document.createElement('option');
+                opt.value = g.id;
+                opt.innerText = g.name;
+                if (user.group_id == g.id) opt.selected = true;
+                groupSelect.appendChild(opt);
+            });
+
+            const roleSelect = document.getElementById('det-role');
+            roleSelect.innerHTML = '<option value="">No role assigned</option>';
+            allRoles.forEach(r => {
+                const opt = document.createElement('option');
+                opt.value = r.id;
+                opt.innerText = r.name;
+                if (user.role_id == r.id) opt.selected = true;
+                roleSelect.appendChild(opt);
+            });
+
+            switchDrawerTab('tab-general');
+            detailsDrawer.classList.add('open');
+        }
+
+        async function saveDrawerDetails() {
+            drawerAlert.classList.add('hidden');
+            const gVal = document.getElementById('det-group').value;
+            const rVal = document.getElementById('det-role').value;
+
+            const payload = {
+                full_name: document.getElementById('det-fullname').value.trim(),
+                phone_number: document.getElementById('det-phone').value.trim(),
+                email: document.getElementById('det-email').value.trim() || null,
+                employee_id: enterpriseMode ? (document.getElementById('det-empid').value.trim() || null) : null,
+                group_id: gVal ? parseInt(gVal, 10) : null,
+                role_id: rVal ? parseInt(rVal, 10) : null,
+                status: document.getElementById('det-status').value,
+                is_admin: document.getElementById('det-isadmin').checked
+            };
+
+            // Frontend inline regex validation checks before submit
+            const nameRx = /^[A-Za-z\-' ]{2,100}$/;
+            const phoneRx = /^\+?[0-9]{10,15}$/;
+            
+            if (!nameRx.test(payload.full_name)) {
+                showAlert(drawerAlert, 'Full Name is invalid (2-100 letters/spaces).');
+                return;
+            }
+            if (payload.phone_number && !phoneRx.test(payload.phone_number)) {
+                showAlert(drawerAlert, 'Phone number must be 10-15 digits.');
+                return;
+            }
+
+            try {
+                await apiFetch(`/api/users/${currentUserId}`, 'PUT', payload);
+                detailsDrawer.classList.remove('open');
+                await fetchUsers();
+            } catch (err) {
+                showAlert(drawerAlert, err.message);
+            }
+        }
+
+        async function resetDrawerPassword() {
+            if (!confirm('Are you sure you want to reset password for this user?')) return;
+            drawerAlert.classList.add('hidden');
+            try {
+                const res = await apiFetch(`/api/users/${currentUserId}/reset-password`, 'POST', {});
+                detailsDrawer.classList.remove('open');
+                
+                document.getElementById('result-pass-input').value = res.temporary_password;
+                document.getElementById('result-modal').classList.remove('hidden');
+            } catch (err) {
+                showAlert(drawerAlert, err.message);
+            }
+        }
+
+        function showAlert(alertEl, text) {
+            alertEl.innerText = text;
+            alertEl.classList.remove('hidden');
+        }
+
+        // --- Wizard Workflow ---
+        function openWizard() {
+            wizardStep = 1;
+            document.getElementById('wizard-alert').classList.add('hidden');
+            
+            // Clear wizard fields
+            document.getElementById('wiz-fullname').value = '';
+            document.getElementById('wiz-username').value = '';
+            document.getElementById('wiz-phone').value = '';
+            document.getElementById('wiz-email').value = '';
+            document.getElementById('wiz-empid').value = '';
+            document.getElementById('wiz-custom-password').value = '';
+            
+            // Populate step 2 dropdown selectors
+            const groupSelect = document.getElementById('wiz-group');
+            groupSelect.innerHTML = '<option value="">No group assigned</option>';
+            allGroups.forEach(g => {
+                const opt = document.createElement('option');
+                opt.value = g.id;
+                opt.innerText = g.name;
+                groupSelect.appendChild(opt);
+            });
+
+            const roleSelect = document.getElementById('wiz-role');
+            roleSelect.innerHTML = '<option value="">No role assigned</option>';
+            allRoles.forEach(r => {
+                const opt = document.createElement('option');
+                opt.value = r.id;
+                opt.innerText = r.name;
+                roleSelect.appendChild(opt);
+            });
+            roleSelect.addEventListener('change', () => {
+                const rId = roleSelect.value;
+                const role = allRoles.find(x => x.id == rId);
+                const previewText = document.getElementById('wiz-privileges-preview');
+                if (role) {
+                    previewText.innerText = `Role Hierarchy level is ${role.hierarchy_level}. Privilege limits inherited: ${role.description || 'None specified'}.`;
+                } else {
+                    previewText.innerText = 'Select a role to preview capabilities.';
+                }
+            });
+
+            showWizardStep(1);
+            addModal.classList.remove('hidden');
+        }
+
+        function showWizardStep(step) {
+            wizardStep = step;
+            
+            // Toggle steps indicators
+            for (let i = 1; i <= 4; i++) {
+                const ind = document.getElementById(`step-ind-${i}`);
+                ind.className = 'step-indicator';
+                if (i === step) ind.classList.add('active');
+                if (i < step) ind.classList.add('complete');
+            }
+
+            // Toggle visibility
+            document.querySelectorAll('.wizard-content-step').forEach(c => c.classList.remove('active'));
+            document.getElementById(`wizard-step-${step}`).classList.add('active');
+
+            // Toggle navigation button rules
+            wizardPrevBtn.style.visibility = step === 1 ? 'hidden' : 'visible';
+            
+            if (step === 4) {
+                wizardNextBtn.innerHTML = '<span>Confirm & Create</span> <i class="fa-solid fa-circle-check"></i>';
+            } else {
+                wizardNextBtn.innerHTML = '<span>Next</span> <i class="fa-solid fa-arrow-right"></i>';
+            }
+        }
+
+        function navigateWizardPrev() {
+            if (wizardStep > 1) {
+                showWizardStep(wizardStep - 1);
+            }
+        }
+
+        async function navigateWizardNext() {
+            document.getElementById('wizard-alert').classList.add('hidden');
+
+            if (wizardStep === 1) {
+                // Step 1 Validation
+                const fullName = document.getElementById('wiz-fullname').value.trim();
+                const username = document.getElementById('wiz-username').value.trim();
+                const phone = document.getElementById('wiz-phone').value.trim();
+                const email = document.getElementById('wiz-email').value.trim();
+                const empid = document.getElementById('wiz-empid').value.trim();
+
+                const nameRx = /^[A-Za-z\-' ]{2,100}$/;
+                const userRx = /^[A-Za-z0-9_]{3,30}$/;
+                const phoneRx = /^\+?[0-9]{10,15}$/;
+
+                if (!nameRx.test(fullName)) {
+                    showAlert(document.getElementById('wizard-alert'), 'Full Name is invalid (2-100 characters).');
+                    return;
+                }
+                if (!userRx.test(username)) {
+                    showAlert(document.getElementById('wizard-alert'), 'Username is invalid (3-30 letters/underscores).');
+                    return;
+                }
+                if (!phoneRx.test(phone)) {
+                    showAlert(document.getElementById('wizard-alert'), 'Phone Number is invalid (10-15 digits).');
+                    return;
+                }
+                if (enterpriseMode && !empid) {
+                    showAlert(document.getElementById('wizard-alert'), 'Employee ID is required in Enterprise Mode.');
+                    return;
+                }
+                
+                showWizardStep(2);
+
+            } else if (wizardStep === 2) {
+                // Step 2 Validation (Role & Group required)
+                const gVal = document.getElementById('wiz-group').value;
+                const rVal = document.getElementById('wiz-role').value;
+                if (!gVal || !rVal) {
+                    showAlert(document.getElementById('wizard-alert'), 'Please assign both a Group and a Privilege Role.');
+                    return;
+                }
+                showWizardStep(3);
+
+            } else if (wizardStep === 3) {
+                // Step 3 Validation
+                const strategy = document.querySelector('input[name="pass-strategy"]:checked').value;
+                if (strategy === 'custom') {
+                    const customPass = document.getElementById('wiz-custom-password').value;
+                    if (!customPass || customPass.length < 8) {
+                        showAlert(document.getElementById('wizard-alert'), 'Custom password must be at least 8 characters long.');
+                        return;
+                    }
+                }
+                
+                // Compile step 4 Review Summary
+                document.getElementById('review-fullname').innerText = document.getElementById('wiz-fullname').value;
+                document.getElementById('review-username').innerText = document.getElementById('wiz-username').value;
+                document.getElementById('review-empid').innerText = document.getElementById('wiz-empid').value || 'N/A';
+                
+                const mailStr = document.getElementById('wiz-email').value || 'No Email';
+                const phoneStr = document.getElementById('wiz-phone').value;
+                document.getElementById('review-contact').innerText = `${mailStr} / ${phoneStr}`;
+                
+                const groupText = document.getElementById('wiz-group').options[document.getElementById('wiz-group').selectedIndex].text;
+                const roleText = document.getElementById('wiz-role').options[document.getElementById('wiz-role').selectedIndex].text;
+                document.getElementById('review-org').innerText = `${groupText} / ${roleText}`;
+                
+                document.getElementById('review-strategy').innerText = strategy === 'generate' ? 'Generate Secure Password' : 'Custom Temporary Password';
+
+                showWizardStep(4);
+
+            } else if (wizardStep === 4) {
+                // Execute creation API call
+                await submitAddUserWizard();
+            }
+        }
+
+        function togglePasswordStrategy() {
+            const strategy = document.querySelector('input[name="pass-strategy"]:checked').value;
+            const customGroup = document.getElementById('wiz-custom-pass-group');
+            const genOptions = document.getElementById('wiz-gen-pass-options');
+
+            if (strategy === 'custom') {
+                customGroup.classList.remove('hidden');
+                genOptions.classList.add('hidden');
+            } else {
+                customGroup.classList.add('hidden');
+                genOptions.classList.remove('hidden');
+            }
+        }
+
+        async function submitAddUserWizard() {
+            const alertEl = document.getElementById('wizard-alert');
+            alertEl.classList.add('hidden');
+
+            const strategy = document.querySelector('input[name="pass-strategy"]:checked').value;
+            const gVal = document.getElementById('wiz-group').value;
+            const rVal = document.getElementById('wiz-role').value;
+
+            // Generate password if requested
+            let tempPassword = '';
+            if (strategy === 'custom') {
+                tempPassword = document.getElementById('wiz-custom-password').value;
+            } else {
+                const len = parseInt(document.getElementById('wiz-gen-length').value, 10);
+                const includeSymbols = document.getElementById('wiz-gen-symbols').checked;
+                tempPassword = generateSecureRandomPassword(len, includeSymbols);
+            }
+
+            const payload = {
+                full_name: document.getElementById('wiz-fullname').value.trim(),
+                username: document.getElementById('wiz-username').value.trim(),
+                phone_number: document.getElementById('wiz-phone').value.trim(),
+                email: document.getElementById('wiz-email').value.trim() || null,
+                employee_id: document.getElementById('wiz-empid').value.trim() || null,
+                group_id: gVal ? parseInt(gVal, 10) : null,
+                role_id: rVal ? parseInt(rVal, 10) : null,
+                temp_password: tempPassword,
+                status: 'Active',
+                is_admin: false // Default admin visual toggle not selected here; toggled only in Org settings afterwards.
+            };
+
+            try {
+                const res = await apiFetch('/api/users', 'POST', payload);
+                addModal.classList.add('hidden');
+                await fetchUsers();
+
+                // Show temporary pass display
+                document.getElementById('result-pass-input').value = res.temporary_password || tempPassword;
+                document.getElementById('result-modal').classList.remove('hidden');
+            } catch (err) {
+                showAlert(alertEl, err.message);
+            }
+        }
+
+        // Cryptographically secure helper generator
+        function generateSecureRandomPassword(length, includeSymbols) {
+            const letters = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+            const numbers = '0123456789';
+            const symbols = '!@#$%^&*()_+-=[]{}|;:,.<>?';
+            
+            let chars = letters + numbers;
+            if (includeSymbols) chars += symbols;
+
+            let password = '';
+            // Ensure at least one lowercase, uppercase, number, symbol (if required)
+            password += letters[Math.floor(Math.random() * 26)]; // lower
+            password += letters[26 + Math.floor(Math.random() * 26)]; // upper
+            password += numbers[Math.floor(Math.random() * 10)]; // number
+            if (includeSymbols) password += symbols[Math.floor(Math.random() * symbols.length)];
+
+            const startLen = password.length;
+            const array = new Uint32Array(length - startLen);
+            window.crypto.getRandomValues(array);
+            
+            for (let i = 0; i < array.length; i++) {
+                password += chars[array[i] % chars.length];
+            }
+            
+            // Shuffle password characters
+            return password.split('').sort(() => 0.5 - Math.random()).join('');
+        }
+    </script>
+</body>
+</html>
