@@ -61,10 +61,19 @@ docker compose up -d
 * ~~Auth page~~
 * ~~First time page prompt~~
 ### Refinement (planned-optionally):
-* New password strength 
-* Show password 
+* ~~New password strength~~
+* Show password
 
 --------------------------------------------
+## Second Phase:
+
+*~~CRUD Groups~~
+*~~CRUD Roles~~
+*~~Hierarchy~~
+*~~User Management~~
+### Refinement (planned-optionally):
+* Correct Ai generated sloppiness for UI
+* Intuitive movement
 
 
 
