@@ -49,6 +49,47 @@ func SetupRouter() *gin.Engine {
 				protected.GET("/me", handlers.GetMe)
 			}
 		}
+
+		// Organization routes (Groups, Roles, Users)
+		org := api.Group("")
+		org.Use(middleware.AuthRequired())
+		{
+			// Groups endpoints
+			org.GET("/groups", handlers.ListGroups)
+			org.GET("/groups/:id", handlers.GetGroup)
+			
+			groupsAdmin := org.Group("/groups")
+			groupsAdmin.Use(middleware.AdminRequired())
+			{
+				groupsAdmin.POST("", handlers.CreateGroup)
+				groupsAdmin.PUT("/:id", handlers.UpdateGroup)
+				groupsAdmin.DELETE("/:id", handlers.DeleteGroup)
+			}
+
+			// Roles endpoints
+			org.GET("/roles", handlers.ListRoles)
+			org.GET("/roles/:id", handlers.GetRole)
+
+			rolesAdmin := org.Group("/roles")
+			rolesAdmin.Use(middleware.AdminRequired())
+			{
+				rolesAdmin.POST("", handlers.CreateRole)
+				rolesAdmin.PUT("/:id", handlers.UpdateRole)
+				rolesAdmin.DELETE("/:id", handlers.DeleteRole)
+			}
+
+			// Users endpoints (restricted to Admins only)
+			usersAdmin := org.Group("/users")
+			usersAdmin.Use(middleware.AdminRequired())
+			{
+				usersAdmin.GET("", handlers.ListUsers)
+				usersAdmin.GET("/:id", handlers.GetUser)
+				usersAdmin.POST("", handlers.CreateUser)
+				usersAdmin.PUT("/:id", handlers.UpdateUser)
+				usersAdmin.DELETE("/:id", handlers.DeleteUser)
+				usersAdmin.POST("/:id/reset-password", handlers.ResetUserPassword)
+			}
+		}
 	}
 
 	return r

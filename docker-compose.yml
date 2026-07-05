@@ -38,6 +38,8 @@ services:
       - DEFAULT_ADMIN_PASSWORD=AdminTempPassword123!
     depends_on:
       - db
+    volumes:
+      - ./frontend:/app/frontend
 
 volumes:
   gopams_postgres_data:

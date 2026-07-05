@@ -75,3 +75,23 @@ func AuthRequired() gin.HandlerFunc {
 		c.Next()
 	}
 }
+
+// AdminRequired ensures that the authenticated user has IsAdmin set to true.
+func AdminRequired() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		val, exists := c.Get("currentUser")
+		if !exists {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized", "message": "Not logged in"})
+			c.Abort()
+			return
+		}
+		user, ok := val.(*models.User)
+		if !ok || !user.IsAdmin {
+			c.JSON(http.StatusForbidden, gin.H{"error": "forbidden", "message": "Administrator access required"})
+			c.Abort()
+			return
+		}
+		c.Next()
+	}
+}
+

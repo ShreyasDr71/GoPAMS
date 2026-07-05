@@ -54,7 +54,7 @@ docker compose up -d
 
 -------------------------------------------------------------------------
 
-# Todo Implementation:
+# Todo Implementation (read plan.md for details):
 
 ## First Phase:
 

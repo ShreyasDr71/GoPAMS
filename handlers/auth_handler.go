@@ -58,6 +58,7 @@ func Login(c *gin.Context) {
 		"message":              "Login successful",
 		"token":                token,
 		"must_change_password": user.MustChangePassword,
+		"enterprise_mode":      config.AppConfig.EnterpriseMode,
 		"user": gin.H{
 			"id":          user.ID,
 			"username":    user.Username,
@@ -160,6 +161,7 @@ func GetMe(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
+		"enterprise_mode": config.AppConfig.EnterpriseMode,
 		"user": gin.H{
 			"id":                   user.ID,
 			"username":             user.Username,
