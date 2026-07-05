@@ -4,6 +4,7 @@ import (
 	"crypto/rand"
 	"math/big"
 	"net/http"
+	"regexp"
 
 	"github.com/ShreyasDr71/GoPAMS/config"
 	"github.com/ShreyasDr71/GoPAMS/database"
@@ -12,12 +13,21 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+var (
+	rxUsername   = regexp.MustCompile(`^[A-Za-z0-9_]{3,30}$`)
+	rxFullName   = regexp.MustCompile(`^[A-Za-z\-' ]{2,100}$`)
+	rxPhone      = regexp.MustCompile(`^\+?[0-9]{10,15}$`)
+	rxEmployeeID = regexp.MustCompile(`^[A-Za-z0-9-]{3,20}$`)
+	rxEmail      = regexp.MustCompile(`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`)
+)
+
 type CreateUserRequest struct {
 	FullName     string  `json:"full_name" binding:"required"`
 	Username     string  `json:"username" binding:"required"`
 	PhoneNumber  string  `json:"phone_number"`
 	Email        *string `json:"email"`
 	EmployeeID   *string `json:"employee_id"`
+	Status       string  `json:"status"` // Pending, Active, Disabled, Locked
 	GroupID      *uint   `json:"group_id"`
 	RoleID       *uint   `json:"role_id"`
 	IsAdmin      bool    `json:"is_admin"`
@@ -29,6 +39,7 @@ type UpdateUserRequest struct {
 	PhoneNumber string  `json:"phone_number"`
 	Email       *string `json:"email"`
 	EmployeeID  *string `json:"employee_id"`
+	Status      string  `json:"status"` // Pending, Active, Disabled, Locked
 	GroupID     *uint   `json:"group_id"`
 	RoleID      *uint   `json:"role_id"`
 	IsAdmin     bool    `json:"is_admin"`
@@ -81,12 +92,62 @@ func CreateUser(c *gin.Context) {
 		return
 	}
 
-	// Enterprise Mode requirement check
+	// Core field validations based on UI Layout & Validation Specification
+	if !rxUsername.MatchString(req.Username) {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "bad_request", "message": "Username must be 3-30 characters, containing only letters, numbers, and underscore"})
+		return
+	}
+	if !rxFullName.MatchString(req.FullName) {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "bad_request", "message": "Full Name must be 2-100 characters, containing only letters, spaces, hyphens, and apostrophes"})
+		return
+	}
+	if req.PhoneNumber != "" && !rxPhone.MatchString(req.PhoneNumber) {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "bad_request", "message": "Phone number must be between 10-15 digits, optionally starting with +"})
+		return
+	}
+
+	// Email validation & unique check
+	if req.Email != nil && *req.Email != "" {
+		if !rxEmail.MatchString(*req.Email) {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "bad_request", "message": "Invalid email address format"})
+			return
+		}
+		var emailCount int64
+		database.DB.Model(&models.User{}).Where("email = ?", *req.Email).Count(&emailCount)
+		if emailCount > 0 {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "bad_request", "message": "Email address is already in use"})
+			return
+		}
+	}
+
+	// Employee ID validation & unique check
 	if config.AppConfig.EnterpriseMode {
 		if req.EmployeeID == nil || *req.EmployeeID == "" {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "bad_request", "message": "Employee ID is required in Enterprise Mode"})
 			return
 		}
+	}
+	if req.EmployeeID != nil && *req.EmployeeID != "" {
+		if !rxEmployeeID.MatchString(*req.EmployeeID) {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "bad_request", "message": "Employee ID must be 3-20 characters, containing only letters, numbers, and hyphens"})
+			return
+		}
+		var empCount int64
+		database.DB.Model(&models.User{}).Where("employee_id = ?", *req.EmployeeID).Count(&empCount)
+		if empCount > 0 {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "bad_request", "message": "Employee ID is already in use"})
+			return
+		}
+	}
+
+	// Status validation
+	status := req.Status
+	if status == "" {
+		status = "Active"
+	}
+	if status != "Pending" && status != "Active" && status != "Disabled" && status != "Locked" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "bad_request", "message": "Status must be one of: Pending, Active, Disabled, Locked"})
+		return
 	}
 
 	// Validate username unique check
@@ -135,6 +196,7 @@ func CreateUser(c *gin.Context) {
 		PhoneNumber:        req.PhoneNumber,
 		Email:              req.Email,
 		EmployeeID:         req.EmployeeID,
+		Status:             status,
 		GroupID:            req.GroupID,
 		RoleID:             req.RoleID,
 		IsAdmin:            req.IsAdmin,
@@ -170,12 +232,58 @@ func UpdateUser(c *gin.Context) {
 		return
 	}
 
-	// Enterprise Mode check
+	// Core field validations based on UI Layout & Validation Specification
+	if !rxFullName.MatchString(req.FullName) {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "bad_request", "message": "Full Name must be 2-100 characters, containing only letters, spaces, hyphens, and apostrophes"})
+		return
+	}
+	if req.PhoneNumber != "" && !rxPhone.MatchString(req.PhoneNumber) {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "bad_request", "message": "Phone number must be between 10-15 digits, optionally starting with +"})
+		return
+	}
+
+	// Email validation & unique check (excluding current user)
+	if req.Email != nil && *req.Email != "" {
+		if !rxEmail.MatchString(*req.Email) {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "bad_request", "message": "Invalid email address format"})
+			return
+		}
+		var emailCount int64
+		database.DB.Model(&models.User{}).Where("email = ? AND id != ?", *req.Email, user.ID).Count(&emailCount)
+		if emailCount > 0 {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "bad_request", "message": "Email address is already in use"})
+			return
+		}
+	}
+
+	// Employee ID validation & unique check (excluding current user)
 	if config.AppConfig.EnterpriseMode {
 		if req.EmployeeID == nil || *req.EmployeeID == "" {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "bad_request", "message": "Employee ID is required in Enterprise Mode"})
 			return
 		}
+	}
+	if req.EmployeeID != nil && *req.EmployeeID != "" {
+		if !rxEmployeeID.MatchString(*req.EmployeeID) {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "bad_request", "message": "Employee ID must be 3-20 characters, containing only letters, numbers, and hyphens"})
+			return
+		}
+		var empCount int64
+		database.DB.Model(&models.User{}).Where("employee_id = ? AND id != ?", *req.EmployeeID, user.ID).Count(&empCount)
+		if empCount > 0 {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "bad_request", "message": "Employee ID is already in use"})
+			return
+		}
+	}
+
+	// Status validation
+	status := req.Status
+	if status == "" {
+		status = "Active"
+	}
+	if status != "Pending" && status != "Active" && status != "Disabled" && status != "Locked" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "bad_request", "message": "Status must be one of: Pending, Active, Disabled, Locked"})
+		return
 	}
 
 	// Validate Group exists if provided
@@ -210,6 +318,7 @@ func UpdateUser(c *gin.Context) {
 	user.PhoneNumber = req.PhoneNumber
 	user.Email = req.Email
 	user.EmployeeID = req.EmployeeID
+	user.Status = status
 	user.GroupID = req.GroupID
 	user.RoleID = req.RoleID
 	user.IsAdmin = req.IsAdmin

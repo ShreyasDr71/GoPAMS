@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/ShreyasDr71/GoPAMS/config"
 	"github.com/ShreyasDr71/GoPAMS/database"
@@ -50,6 +51,11 @@ func Login(c *gin.Context) {
 		return
 	}
 
+	// Update last login in database
+	now := time.Now()
+	user.LastLoginAt = &now
+	database.DB.Model(&user).Update("last_login_at", user.LastLoginAt)
+
 	// Set HttpOnly cookie for safety
 	cookieMaxAge := config.AppConfig.SessionTimeoutMinutes * 60
 	c.SetCookie("token", token, cookieMaxAge, "/", "", false, true)
@@ -60,15 +66,17 @@ func Login(c *gin.Context) {
 		"must_change_password": user.MustChangePassword,
 		"enterprise_mode":      config.AppConfig.EnterpriseMode,
 		"user": gin.H{
-			"id":          user.ID,
-			"username":    user.Username,
-			"full_name":   user.FullName,
-			"is_admin":    user.IsAdmin,
-			"phone":       user.PhoneNumber,
-			"email":       user.Email,
-			"employee_id": user.EmployeeID,
-			"role":        roleName,
-			"group":       user.Group,
+			"id":            user.ID,
+			"username":      user.Username,
+			"full_name":     user.FullName,
+			"is_admin":      user.IsAdmin,
+			"phone":         user.PhoneNumber,
+			"email":         user.Email,
+			"employee_id":   user.EmployeeID,
+			"status":        user.Status,
+			"last_login_at": user.LastLoginAt,
+			"role":          roleName,
+			"group":         user.Group,
 		},
 	})
 }

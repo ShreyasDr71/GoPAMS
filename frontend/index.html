@@ -340,7 +340,7 @@
             100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(132, 238, 2, 0); }
         }
 
-        /* Full-screen application layout (ITSM inspired) */
+        /* Full-screen application layout (ITSM ServiceNow/Jira inspired) */
         #app-layout {
             position: fixed;
             top: 0;
@@ -356,7 +356,7 @@
         }
 
         .app-header {
-            height: 60px;
+            height: 64px; /* Layout specification: 64px */
             background: #ffffff;
             border-bottom: 1px solid var(--border);
             display: flex;
@@ -368,7 +368,7 @@
 
         .header-left .logo {
             font-weight: 700;
-            font-size: 1.3rem;
+            font-size: 1.35rem;
             color: var(--text-main);
             display: flex;
             align-items: center;
@@ -450,7 +450,7 @@
         }
 
         .app-sidebar {
-            width: 240px;
+            width: 250px; /* Layout specification: 250px */
             background: #ffffff;
             border-right: 1px solid var(--border);
             display: flex;
@@ -483,7 +483,7 @@
         }
 
         .nav-item:hover {
-            background: #F8F9FA;
+            background: #F9FAFB;
             color: var(--text-main);
         }
 
@@ -518,20 +518,40 @@
         .app-main {
             flex: 1;
             overflow-y: auto;
-            padding: 30px;
+            padding: 24px; /* Layout specification: 24px */
             background: var(--bg);
         }
 
-        /* View Card styling */
+        /* Breadcrumbs styling */
+        .breadcrumbs-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+
+        .breadcrumbs-container .separator {
+            font-size: 0.7rem;
+            color: #BDC3C7;
+        }
+
+        .breadcrumbs-container span:last-child {
+            color: var(--text-main);
+            font-weight: 600;
+        }
+
+        /* Workspace View Card (Full-width, no horizontal centering waste) */
         .view-card {
             width: 100%;
-            max-width: 1000px;
-            margin: 0 auto;
+            max-width: 100% !important; /* Full width workspace pages */
             background: #ffffff;
             border: 1px solid var(--border);
             border-radius: 8px;
-            padding: 40px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            padding: 24px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
             position: relative;
         }
 
@@ -547,10 +567,70 @@
             border-top-right-radius: 8px;
         }
 
+        /* Toolbars (Search, Filter, Add, Export) */
+        .workspace-toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .toolbar-left, .toolbar-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .search-wrapper {
+            position: relative;
+        }
+
+        .search-wrapper i {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        .search-wrapper input {
+            padding: 8px 12px 8px 34px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            outline: none;
+            font-size: 0.9rem;
+            width: 220px;
+            font-family: 'Inter', sans-serif;
+            background: #ffffff;
+        }
+
+        .search-wrapper input:focus {
+            border-color: var(--secondary);
+        }
+
+        .toolbar-select {
+            padding: 8px 12px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            outline: none;
+            font-size: 0.9rem;
+            background: #ffffff;
+            font-family: 'Inter', sans-serif;
+            cursor: pointer;
+        }
+
+        .toolbar-select:focus {
+            border-color: var(--secondary);
+        }
+
+        /* Tables & Sticky Headers */
         .table-responsive {
             width: 100%;
-            overflow-x: auto;
-            margin-top: 15px;
+            max-height: calc(100vh - 230px);
+            overflow-y: auto;
             border: 1px solid var(--border);
             border-radius: 6px;
             background: var(--panel-bg);
@@ -558,28 +638,70 @@
 
         .admin-table {
             width: 100%;
-            border-collapse: collapse;
+            border-collapse: separate;
+            border-spacing: 0;
             text-align: left;
             font-size: 0.9rem;
         }
 
         .admin-table th, .admin-table td {
-            padding: 12px 16px;
+            padding: 14px 16px;
             border-bottom: 1px solid var(--border);
             white-space: nowrap;
         }
 
         .admin-table th {
+            position: sticky;
+            top: 0;
             background: #F9FAFB;
             color: var(--text-muted);
             font-weight: 600;
             text-transform: uppercase;
             font-size: 0.75rem;
             letter-spacing: 0.5px;
+            z-index: 10;
+            border-bottom: 1px solid var(--border);
         }
 
         .admin-table tbody tr:hover {
             background: #F9FAFB;
+        }
+
+        /* Curated Status Badges */
+        .badge-active {
+            background: rgba(14, 238, 2, 0.08);
+            color: #0c9e02;
+            border: 1px solid var(--success-confirm);
+        }
+
+        .badge-pending {
+            background: rgba(238, 108, 2, 0.08);
+            color: var(--warning);
+            border: 1px solid var(--warning);
+        }
+
+        .badge-disabled {
+            background: rgba(220, 53, 69, 0.08);
+            color: var(--danger);
+            border: 1px solid var(--danger);
+        }
+
+        .badge-locked {
+            background: rgba(30, 30, 30, 0.08);
+            color: #666666;
+            border: 1px solid var(--text-muted);
+        }
+
+        .badge-group {
+            background: rgba(2, 14, 238, 0.06);
+            color: var(--secondary);
+            border: 1px solid var(--secondary);
+        }
+
+        .badge-role {
+            background: rgba(2, 238, 226, 0.08);
+            color: #019a92;
+            border: 1px solid var(--info);
         }
 
         /* Action Buttons */
@@ -683,6 +805,20 @@
 
         .form-row .input-group {
             flex: 1;
+        }
+
+        /* Form validation visual cues and disabled button style */
+        .input-wrapper input:invalid:not(:placeholder-shown) {
+            border-color: var(--danger);
+            background-color: rgba(220, 53, 69, 0.02);
+        }
+
+        .btn:disabled {
+            background: #E5E7EB !important;
+            border-color: #D1D5DB !important;
+            color: #9CA3AF !important;
+            cursor: not-allowed;
+            transform: none !important;
         }
 
         /* Responsive sidebar navigation */
@@ -839,6 +975,15 @@
             <main class="app-main">
                 <div id="app-alert" class="alert alert-danger hidden"></div>
 
+                <!-- BREADCRUMBS -->
+                <div class="breadcrumbs-container">
+                    <span id="breadcrumb-root">Home</span>
+                    <i class="fa-solid fa-chevron-right separator"></i>
+                    <span id="breadcrumb-parent">Administration</span>
+                    <i class="fa-solid fa-chevron-right separator"></i>
+                    <span id="breadcrumb-current">Profile Dashboard</span>
+                </div>
+
                 <!-- A. PROFILE DASHBOARD -->
                 <div id="profile-view" class="view-card card">
                     <h2 style="text-align: left; margin-bottom: 25px;">Profile Dashboard</h2>
@@ -879,21 +1024,53 @@
 
                 <!-- B. USERS VIEW (ADMIN ONLY) -->
                 <div id="users-view" class="view-card card hidden">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; padding-bottom: 15px; border-bottom: 1px solid var(--border);">
-                        <h2 style="margin-bottom: 0; text-align: left;">User Management</h2>
-                        <button id="add-user-btn" class="btn" style="width: auto; padding: 8px 16px; background: var(--success-confirm); color: #1E1E1E; border: 1px solid #0bb902; border-radius: 6px;">
-                            <i class="fa-solid fa-user-plus"></i> <span>Add User</span>
-                        </button>
+                    <h2 style="text-align: left; margin-bottom: 20px;">User Management</h2>
+                    
+                    <!-- Top Toolbar -->
+                    <div class="workspace-toolbar">
+                        <div class="toolbar-left">
+                            <div class="search-wrapper">
+                                <i class="fa-solid fa-magnifying-glass"></i>
+                                <input type="text" id="user-search-input" placeholder="Search users...">
+                            </div>
+                            <select id="user-status-filter" class="toolbar-select">
+                                <option value="">All Statuses</option>
+                                <option value="Active">Active</option>
+                                <option value="Pending">Pending</option>
+                                <option value="Disabled">Disabled</option>
+                                <option value="Locked">Locked</option>
+                            </select>
+                            <select id="user-group-filter" class="toolbar-select">
+                                <option value="">All Groups</option>
+                            </select>
+                        </div>
+                        <div class="toolbar-right">
+                            <button id="add-user-btn" class="btn" style="width: auto; padding: 8px 16px; background: var(--success-confirm); color: #1E1E1E; border: 1px solid #0bb902; border-radius: 6px; font-weight: 600;">
+                                <i class="fa-solid fa-user-plus"></i> <span>Add User</span>
+                            </button>
+                            <select id="user-bulk-actions" class="toolbar-select">
+                                <option value="">Bulk Actions</option>
+                                <option value="activate">Activate Selected</option>
+                                <option value="disable">Disable Selected</option>
+                            </select>
+                            <button id="user-export-btn" class="btn btn-secondary" style="width: auto; padding: 8px 16px; font-weight: 600;">
+                                <i class="fa-solid fa-download"></i> <span>Export</span>
+                            </button>
+                        </div>
                     </div>
+
                     <div class="table-responsive">
                         <table class="admin-table">
                             <thead>
                                 <tr>
+                                    <th>Employee ID</th>
                                     <th>Full Name</th>
                                     <th>Username</th>
-                                    <th>Role</th>
                                     <th>Group</th>
-                                    <th>Email / Phone</th>
+                                    <th>Role</th>
+                                    <th>Status</th>
+                                    <th>Phone</th>
+                                    <th>Last Login</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
@@ -906,12 +1083,26 @@
 
                 <!-- C. GROUPS VIEW (ADMIN ONLY) -->
                 <div id="groups-view" class="view-card card hidden">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; padding-bottom: 15px; border-bottom: 1px solid var(--border);">
-                        <h2 style="margin-bottom: 0; text-align: left;">Group Management</h2>
-                        <button id="add-group-btn" class="btn" style="width: auto; padding: 8px 16px; background: var(--success-confirm); color: #1E1E1E; border: 1px solid #0bb902; border-radius: 6px;">
-                            <i class="fa-solid fa-folder-plus"></i> <span>Add Group</span>
-                        </button>
+                    <h2 style="text-align: left; margin-bottom: 20px;">Group Management</h2>
+
+                    <!-- Top Toolbar -->
+                    <div class="workspace-toolbar">
+                        <div class="toolbar-left">
+                            <div class="search-wrapper">
+                                <i class="fa-solid fa-magnifying-glass"></i>
+                                <input type="text" id="group-search-input" placeholder="Search groups...">
+                            </div>
+                        </div>
+                        <div class="toolbar-right">
+                            <button id="add-group-btn" class="btn" style="width: auto; padding: 8px 16px; background: var(--success-confirm); color: #1E1E1E; border: 1px solid #0bb902; border-radius: 6px; font-weight: 600;">
+                                <i class="fa-solid fa-folder-plus"></i> <span>Add Group</span>
+                            </button>
+                            <button id="group-export-btn" class="btn btn-secondary" style="width: auto; padding: 8px 16px; font-weight: 600;">
+                                <i class="fa-solid fa-download"></i> <span>Export</span>
+                            </button>
+                        </div>
                     </div>
+
                     <div class="table-responsive">
                         <table class="admin-table">
                             <thead>
@@ -930,12 +1121,26 @@
 
                 <!-- D. ROLES VIEW (ADMIN ONLY) -->
                 <div id="roles-view" class="view-card card hidden">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; padding-bottom: 15px; border-bottom: 1px solid var(--border);">
-                        <h2 style="margin-bottom: 0; text-align: left;">Role Management</h2>
-                        <button id="add-role-btn" class="btn" style="width: auto; padding: 8px 16px; background: var(--success-confirm); color: #1E1E1E; border: 1px solid #0bb902; border-radius: 6px;">
-                            <i class="fa-solid fa-shield-halved"></i> <span>Add Role</span>
-                        </button>
+                    <h2 style="text-align: left; margin-bottom: 20px;">Role Management</h2>
+
+                    <!-- Top Toolbar -->
+                    <div class="workspace-toolbar">
+                        <div class="toolbar-left">
+                            <div class="search-wrapper">
+                                <i class="fa-solid fa-magnifying-glass"></i>
+                                <input type="text" id="role-search-input" placeholder="Search roles...">
+                            </div>
+                        </div>
+                        <div class="toolbar-right">
+                            <button id="add-role-btn" class="btn" style="width: auto; padding: 8px 16px; background: var(--success-confirm); color: #1E1E1E; border: 1px solid #0bb902; border-radius: 6px; font-weight: 600;">
+                                <i class="fa-solid fa-shield-halved"></i> <span>Add Role</span>
+                            </button>
+                            <button id="role-export-btn" class="btn btn-secondary" style="width: auto; padding: 8px 16px; font-weight: 600;">
+                                <i class="fa-solid fa-download"></i> <span>Export</span>
+                            </button>
+                        </div>
                     </div>
+
                     <div class="table-responsive">
                         <table class="admin-table">
                             <thead>
@@ -969,14 +1174,14 @@
                     <label for="user-modal-fullname">Full Name</label>
                     <div class="input-wrapper">
                         <i class="fa-solid fa-id-card"></i>
-                        <input type="text" id="user-modal-fullname" required placeholder="John Doe">
+                        <input type="text" id="user-modal-fullname" required pattern="^[A-Za-z\-' ]{2,100}$" placeholder="John Doe" title="2-100 characters, containing only letters, spaces, hyphens, and apostrophes">
                     </div>
                 </div>
                 <div class="input-group">
                     <label for="user-modal-username">Username</label>
                     <div class="input-wrapper">
                         <i class="fa-solid fa-user"></i>
-                        <input type="text" id="user-modal-username" required placeholder="johndoe">
+                        <input type="text" id="user-modal-username" required pattern="^[A-Za-z0-9_]{3,30}$" placeholder="johndoe" title="3-30 characters, letters, numbers, and underscores only">
                     </div>
                 </div>
                 <div class="form-row">
@@ -984,7 +1189,7 @@
                         <label for="user-modal-phone">Phone Number</label>
                         <div class="input-wrapper">
                             <i class="fa-solid fa-phone"></i>
-                            <input type="text" id="user-modal-phone" placeholder="+123456789">
+                            <input type="text" id="user-modal-phone" pattern="^\+?[0-9]{10,15}$" placeholder="+123456789" title="10-15 digits, optionally starting with +">
                         </div>
                     </div>
                     <div class="input-group">
@@ -1009,11 +1214,22 @@
                         </select>
                     </div>
                 </div>
-                <div class="input-group" id="user-modal-empid-group">
-                    <label for="user-modal-empid">Employee ID</label>
-                    <div class="input-wrapper">
-                        <i class="fa-solid fa-hashtag"></i>
-                        <input type="text" id="user-modal-empid" placeholder="EMP-001">
+                <div class="form-row">
+                    <div class="input-group" id="user-modal-empid-group">
+                        <label for="user-modal-empid">Employee ID</label>
+                        <div class="input-wrapper">
+                            <i class="fa-solid fa-hashtag"></i>
+                            <input type="text" id="user-modal-empid" pattern="^[A-Za-z0-9-]{3,20}$" placeholder="EMP-001" title="3-20 characters, containing only letters, numbers, and hyphens">
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label for="user-modal-status">Status</label>
+                        <select id="user-modal-status" style="width:100%; padding:12px; border:1px solid var(--border); border-radius:6px; background:#fff; outline:none; font-family:'Inter';">
+                            <option value="Active">Active</option>
+                            <option value="Pending">Pending</option>
+                            <option value="Disabled">Disabled</option>
+                            <option value="Locked">Locked</option>
+                        </select>
                     </div>
                 </div>
                 <div class="input-group" id="user-modal-password-group">
@@ -1027,7 +1243,7 @@
                     <input type="checkbox" id="user-modal-isadmin" style="width: 18px; height: 18px; cursor: pointer;">
                     <label for="user-modal-isadmin" style="margin-bottom:0; cursor:pointer;">Grant Administrator Privileges</label>
                 </div>
-                <button type="submit" class="btn btn-secondary">
+                <button type="submit" id="user-modal-submit-btn" class="btn btn-secondary">
                     <span id="user-modal-btn-text">Save User</span>
                     <i class="fa-solid fa-floppy-disk"></i>
                 </button>
@@ -1057,7 +1273,7 @@
                         <input type="text" id="group-modal-desc" placeholder="Manages switches and firewalls">
                     </div>
                 </div>
-                <button type="submit" class="btn btn-secondary">
+                <button type="submit" id="group-modal-submit-btn" class="btn btn-secondary">
                     <span>Save Group</span>
                     <i class="fa-solid fa-floppy-disk"></i>
                 </button>
@@ -1441,6 +1657,11 @@
         // SIDEBAR NAVIGATION & CRUD EVENT HANDLERS
         // ==========================================
 
+        // Global caches for client-side search/filtering
+        let allUsers = [];
+        let allGroups = [];
+        let allRoles = [];
+
         function setupEventListeners() {
             // Sidebar tab switches
             document.querySelectorAll('.nav-item[data-view]').forEach(btn => {
@@ -1474,6 +1695,14 @@
             document.getElementById('result-modal-close').addEventListener('click', () => closeModal(resultModal));
             document.getElementById('result-modal-done').addEventListener('click', () => closeModal(resultModal));
 
+            // Toolbar Search & Filter Listeners
+            document.getElementById('user-search-input').addEventListener('input', renderUserTable);
+            document.getElementById('user-status-filter').addEventListener('change', renderUserTable);
+            document.getElementById('user-group-filter').addEventListener('change', renderUserTable);
+
+            document.getElementById('group-search-input').addEventListener('input', renderGroupTable);
+            document.getElementById('role-search-input').addEventListener('input', renderRoleTable);
+
             // Copy Generated Password
             document.getElementById('copy-temp-pass-btn').addEventListener('click', () => {
                 const valEl = document.getElementById('result-password-val');
@@ -1495,6 +1724,75 @@
 
         function closeModal(modalEl) {
             modalEl.classList.add('hidden');
+        }
+
+        // Inline form validation state sync helper
+        function initFormValidation(formId, submitBtnId) {
+            const form = document.getElementById(formId);
+            const btn = document.getElementById(submitBtnId);
+            if (!form || !btn) return;
+            
+            const validate = () => {
+                btn.disabled = !form.checkValidity();
+            };
+            
+            form.querySelectorAll('input, select').forEach(input => {
+                input.removeEventListener('input', validate);
+                input.removeEventListener('change', validate);
+                input.addEventListener('input', validate);
+                input.addEventListener('change', validate);
+            });
+            
+            validate();
+        }
+
+        // Dynamic breadcrumb sync
+        function updateBreadcrumbs(viewId) {
+            const parent = document.getElementById('breadcrumb-parent');
+            const current = document.getElementById('breadcrumb-current');
+            if (!parent || !current) return;
+            
+            if (viewId === 'profile-view') {
+                parent.innerText = 'Workspace';
+                current.innerText = 'Profile Dashboard';
+            } else if (viewId === 'users-view') {
+                parent.innerText = 'Administration';
+                current.innerText = 'User Management';
+            } else if (viewId === 'groups-view') {
+                parent.innerText = 'Administration';
+                current.innerText = 'Group Management';
+            } else if (viewId === 'roles-view') {
+                parent.innerText = 'Administration';
+                current.innerText = 'Role Management';
+            }
+        }
+
+        // Modified showView to include breadcrumb updates
+        function showView(viewId) {
+            document.querySelectorAll('.view-card').forEach(el => el.classList.add('hidden'));
+            
+            const activeCard = document.getElementById(viewId);
+            if (activeCard) {
+                activeCard.classList.remove('hidden');
+            }
+
+            document.querySelectorAll('.nav-item').forEach(btn => {
+                if (btn.getAttribute('data-view') === viewId) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+
+            updateBreadcrumbs(viewId);
+
+            if (viewId === 'users-view') {
+                fetchUsers();
+            } else if (viewId === 'groups-view') {
+                fetchGroups();
+            } else if (viewId === 'roles-view') {
+                fetchRoles();
+            }
         }
 
         // --- Fetch Utilities ---
@@ -1520,25 +1818,36 @@
         // --- Groups CRUD ---
         async function fetchGroups() {
             try {
-                const groups = await apiFetch('/api/groups');
-                groupsTableBody.innerHTML = '';
-                groups.forEach(g => {
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `
-                        <td style="font-weight:600;">${escapeHtml(g.name)}</td>
-                        <td>${escapeHtml(g.description || '-')}</td>
-                        <td>
-                            <div class="action-btn-group">
-                                <button class="action-btn" onclick="editGroup(${g.id})"><i class="fa-solid fa-pen"></i> Edit</button>
-                                <button class="action-btn action-btn-danger" onclick="deleteGroup(${g.id})"><i class="fa-solid fa-trash"></i> Delete</button>
-                            </div>
-                        </td>
-                    `;
-                    groupsTableBody.appendChild(tr);
-                });
+                allGroups = await apiFetch('/api/groups');
+                renderGroupTable();
             } catch (err) {
                 showAlert(adminAlert, 'Failed to fetch groups: ' + err.message);
             }
+        }
+
+        function renderGroupTable() {
+            const query = document.getElementById('group-search-input').value.toLowerCase();
+            groupsTableBody.innerHTML = '';
+            
+            const filtered = allGroups.filter(g => {
+                return g.name.toLowerCase().includes(query) || 
+                       (g.description && g.description.toLowerCase().includes(query));
+            });
+
+            filtered.forEach(g => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td style="font-weight:600;">${escapeHtml(g.name)}</td>
+                    <td>${escapeHtml(g.description || '-')}</td>
+                    <td>
+                        <div class="action-btn-group">
+                            <button class="action-btn" onclick="editGroup(${g.id})"><i class="fa-solid fa-pen"></i> Edit</button>
+                            <button class="action-btn action-btn-danger" onclick="deleteGroup(${g.id})"><i class="fa-solid fa-trash"></i> Delete</button>
+                        </div>
+                    </td>
+                `;
+                groupsTableBody.appendChild(tr);
+            });
         }
 
         function openGroupModal(group = null) {
@@ -1555,6 +1864,7 @@
                 document.getElementById('group-modal-desc').value = '';
             }
             openModal(groupModal);
+            initFormValidation('group-modal-form', 'group-modal-submit-btn');
         }
 
         async function editGroup(id) {
@@ -1603,26 +1913,37 @@
         // --- Roles CRUD ---
         async function fetchRoles() {
             try {
-                const roles = await apiFetch('/api/roles');
-                rolesTableBody.innerHTML = '';
-                roles.forEach(r => {
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `
-                        <td style="font-weight:600;">${escapeHtml(r.name)}</td>
-                        <td>${escapeHtml(r.description || '-')}</td>
-                        <td><span class="badge badge-user" style="background:#e5e7eb; border:none; color:var(--text-main); font-family:monospace;">${r.hierarchy_level}</span></td>
-                        <td>
-                            <div class="action-btn-group">
-                                <button class="action-btn" onclick="editRole(${r.id})"><i class="fa-solid fa-pen"></i> Edit</button>
-                                <button class="action-btn action-btn-danger" onclick="deleteRole(${r.id})"><i class="fa-solid fa-trash"></i> Delete</button>
-                            </div>
-                        </td>
-                    `;
-                    rolesTableBody.appendChild(tr);
-                });
+                allRoles = await apiFetch('/api/roles');
+                renderRoleTable();
             } catch (err) {
                 showAlert(adminAlert, 'Failed to fetch roles: ' + err.message);
             }
+        }
+
+        function renderRoleTable() {
+            const query = document.getElementById('role-search-input').value.toLowerCase();
+            rolesTableBody.innerHTML = '';
+
+            const filtered = allRoles.filter(r => {
+                return r.name.toLowerCase().includes(query) || 
+                       (r.description && r.description.toLowerCase().includes(query));
+            });
+
+            filtered.forEach(r => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td style="font-weight:600;">${escapeHtml(r.name)}</td>
+                    <td>${escapeHtml(r.description || '-')}</td>
+                    <td><span class="badge badge-user" style="background:#e5e7eb; border:none; color:var(--text-main); font-family:monospace;">${r.hierarchy_level}</span></td>
+                    <td>
+                        <div class="action-btn-group">
+                            <button class="action-btn" onclick="editRole(${r.id})"><i class="fa-solid fa-pen"></i> Edit</button>
+                            <button class="action-btn action-btn-danger" onclick="deleteRole(${r.id})"><i class="fa-solid fa-trash"></i> Delete</button>
+                        </div>
+                    </td>
+                `;
+                rolesTableBody.appendChild(tr);
+            });
         }
 
         function openRoleModal(role = null) {
@@ -1641,6 +1962,7 @@
                 document.getElementById('role-modal-level').value = 10;
             }
             openModal(roleModal);
+            initFormValidation('role-modal-form', 'role-modal-submit-btn');
         }
 
         async function editRole(id) {
@@ -1690,45 +2012,89 @@
         // --- Users CRUD ---
         async function fetchUsers() {
             try {
-                const users = await apiFetch('/api/users');
-                usersTableBody.innerHTML = '';
-                users.forEach(u => {
-                    const roleName = u.role ? u.role.name : 'Guest';
-                    const groupName = u.group ? u.group.name : 'None';
-                    const detail = [];
-                    if (u.email) detail.push(u.email);
-                    if (u.phone_number) detail.push(u.phone_number);
-                    if (u.employee_id) detail.push(`ID: ${u.employee_id}`);
-
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `
-                        <td style="font-weight:600;">
-                            ${escapeHtml(u.full_name)}
-                            ${u.is_admin ? '<span class="badge badge-admin" style="font-size:0.65rem; padding: 2px 4px; margin-left: 5px;">Admin</span>' : ''}
-                        </td>
-                        <td style="font-family:monospace;">${escapeHtml(u.username)}</td>
-                        <td><span class="badge ${roleName === 'Administrator' ? 'badge-admin' : 'badge-user'}">${roleName}</span></td>
-                        <td><span class="badge badge-user" style="background:#e8f0fe; border-color:#d2e3fc; color:#1967d2;">${groupName}</span></td>
-                        <td style="font-size:0.8rem; color:var(--text-muted);">${escapeHtml(detail.join(' | ') || '-')}</td>
-                        <td>
-                            <div class="action-btn-group">
-                                <button class="action-btn" onclick="editUser(${u.id})"><i class="fa-solid fa-pen"></i> Edit</button>
-                                <button class="action-btn action-btn-warning" onclick="resetUserPassword(${u.id})"><i class="fa-solid fa-key"></i> Reset Pass</button>
-                                <button class="action-btn action-btn-danger" onclick="deleteUser(${u.id})"><i class="fa-solid fa-trash"></i> Delete</button>
-                            </div>
-                        </td>
-                    `;
-                    usersTableBody.appendChild(tr);
-                });
+                allUsers = await apiFetch('/api/users');
+                await populateGroupFilter();
+                renderUserTable();
             } catch (err) {
                 showAlert(adminAlert, 'Failed to fetch users: ' + err.message);
             }
         }
 
+        async function populateGroupFilter() {
+            try {
+                const groups = await apiFetch('/api/groups');
+                const filterSelect = document.getElementById('user-group-filter');
+                if (filterSelect) {
+                    const currentVal = filterSelect.value;
+                    filterSelect.innerHTML = '<option value="">All Groups</option>';
+                    groups.forEach(g => {
+                        const opt = document.createElement('option');
+                        opt.value = g.id;
+                        opt.innerText = g.name;
+                        filterSelect.appendChild(opt);
+                    });
+                    filterSelect.value = currentVal;
+                }
+            } catch (e) {}
+        }
+
+        function renderUserTable() {
+            const query = document.getElementById('user-search-input').value.toLowerCase();
+            const statusFilter = document.getElementById('user-status-filter').value;
+            const groupFilter = document.getElementById('user-group-filter').value;
+
+            usersTableBody.innerHTML = '';
+            
+            const filtered = allUsers.filter(u => {
+                const matchesSearch = u.full_name.toLowerCase().includes(query) || 
+                                      u.username.toLowerCase().includes(query) || 
+                                      (u.email && u.email.toLowerCase().includes(query)) ||
+                                      (u.employee_id && u.employee_id.toLowerCase().includes(query));
+                
+                const matchesStatus = !statusFilter || u.status === statusFilter;
+                const matchesGroup = !groupFilter || (u.group_id && u.group_id == groupFilter);
+                
+                return matchesSearch && matchesStatus && matchesGroup;
+            });
+
+            filtered.forEach(u => {
+                const roleName = u.role ? u.role.name : 'Guest';
+                const groupName = u.group ? u.group.name : 'None';
+                const lastLogin = u.last_login_at ? new Date(u.last_login_at).toLocaleString() : 'Never';
+                
+                let badgeClass = 'badge-active';
+                if (u.status === 'Pending') badgeClass = 'badge-pending';
+                else if (u.status === 'Disabled') badgeClass = 'badge-disabled';
+                else if (u.status === 'Locked') badgeClass = 'badge-locked';
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td style="font-family:monospace; font-weight:600;">${escapeHtml(u.employee_id || '-')}</td>
+                    <td style="font-weight:600;">
+                        ${escapeHtml(u.full_name)}
+                        ${u.is_admin ? '<span class="badge badge-admin" style="font-size:0.65rem; padding: 2px 4px; margin-left: 5px;">Admin</span>' : ''}
+                    </td>
+                    <td style="font-family:monospace;">${escapeHtml(u.username)}</td>
+                    <td><span class="badge badge-group">${groupName}</span></td>
+                    <td><span class="badge ${roleName === 'Administrator' ? 'badge-admin' : 'badge-role'}">${roleName}</span></td>
+                    <td><span class="badge ${badgeClass}">${u.status || 'Active'}</span></td>
+                    <td>${escapeHtml(u.phone_number || '-')}</td>
+                    <td style="font-size:0.8rem; color:var(--text-muted);">${lastLogin}</td>
+                    <td>
+                        <div class="action-btn-group">
+                            <button class="action-btn" onclick="editUser(${u.id})"><i class="fa-solid fa-pen"></i> Edit</button>
+                            <button class="action-btn action-btn-warning" onclick="resetUserPassword(${u.id})"><i class="fa-solid fa-key"></i> Reset Pass</button>
+                            <button class="action-btn action-btn-danger" onclick="deleteUser(${u.id})"><i class="fa-solid fa-trash"></i> Delete</button>
+                        </div>
+                    </td>
+                `;
+                usersTableBody.appendChild(tr);
+            });
+        }
+
         async function openUserModal(user = null) {
             document.getElementById('user-modal-alert').classList.add('hidden');
             
-            // Toggle Employee ID input display depending on Enterprise mode
             const empIdGroup = document.getElementById('user-modal-empid-group');
             const empIdInput = document.getElementById('user-modal-empid');
             if (enterpriseMode) {
@@ -1739,7 +2105,6 @@
                 empIdInput.required = false;
             }
 
-            // Populates dropdown selects
             const selectedGroupId = user ? user.group_id : null;
             const selectedRoleId = user ? user.role_id : null;
             await populateUserModalSelects(selectedGroupId, selectedRoleId);
@@ -1750,13 +2115,13 @@
                 document.getElementById('user-modal-id').value = user.id;
                 document.getElementById('user-modal-fullname').value = user.full_name;
                 document.getElementById('user-modal-username').value = user.username;
-                document.getElementById('user-modal-username').disabled = true; // username immutable
+                document.getElementById('user-modal-username').disabled = true;
                 document.getElementById('user-modal-phone').value = user.phone_number || '';
                 document.getElementById('user-modal-email').value = user.email || '';
                 document.getElementById('user-modal-empid').value = user.employee_id || '';
+                document.getElementById('user-modal-status').value = user.status || 'Active';
                 document.getElementById('user-modal-isadmin').checked = user.is_admin;
                 
-                // Hide temporary password field when editing
                 document.getElementById('user-modal-password-group').style.display = 'none';
             } else {
                 document.getElementById('user-modal-title').innerText = 'Add User';
@@ -1768,13 +2133,14 @@
                 document.getElementById('user-modal-phone').value = '';
                 document.getElementById('user-modal-email').value = '';
                 document.getElementById('user-modal-empid').value = '';
+                document.getElementById('user-modal-status').value = 'Active';
                 document.getElementById('user-modal-isadmin').checked = false;
                 
-                // Show temporary password field when creating
                 document.getElementById('user-modal-password-group').style.display = 'block';
                 document.getElementById('user-modal-password').value = '';
             }
             openModal(userModal);
+            initFormValidation('user-modal-form', 'user-modal-submit-btn');
         }
 
         async function populateUserModalSelects(selectedGroupId, selectedRoleId) {
@@ -1820,8 +2186,6 @@
             alertEl.classList.add('hidden');
 
             const id = document.getElementById('user-modal-id').value;
-            
-            // Build request body
             const roleVal = document.getElementById('user-modal-role').value;
             const groupVal = document.getElementById('user-modal-group').value;
 
@@ -1830,6 +2194,7 @@
                 phone_number: document.getElementById('user-modal-phone').value.trim(),
                 email: document.getElementById('user-modal-email').value.trim() || null,
                 employee_id: document.getElementById('user-modal-empid').value.trim() || null,
+                status: document.getElementById('user-modal-status').value,
                 group_id: groupVal ? parseInt(groupVal, 10) : null,
                 role_id: roleVal ? parseInt(roleVal, 10) : null,
                 is_admin: document.getElementById('user-modal-isadmin').checked
@@ -1837,12 +2202,10 @@
 
             try {
                 if (id) {
-                    // Update
                     await apiFetch(`/api/users/${id}`, 'PUT', payload);
                     closeModal(userModal);
                     fetchUsers();
                 } else {
-                    // Create
                     payload.username = document.getElementById('user-modal-username').value.trim();
                     payload.temp_password = document.getElementById('user-modal-password').value;
                     const res = await apiFetch('/api/users', 'POST', payload);
@@ -1850,7 +2213,6 @@
                     closeModal(userModal);
                     fetchUsers();
                     
-                    // Show generated temporary password in result modal
                     document.getElementById('result-password-val').value = res.temporary_password;
                     openModal(resultModal);
                 }
@@ -1880,7 +2242,6 @@
             }
         }
 
-        // --- Helper: HTML Escaper to prevent XSS ---
         function escapeHtml(str) {
             if (!str) return '';
             return str

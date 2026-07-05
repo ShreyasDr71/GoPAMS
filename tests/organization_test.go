@@ -208,7 +208,7 @@ func TestUserCRUDAndGuardrails(t *testing.T) {
 	newUser := map[string]interface{}{
 		"full_name":     "New Engineer",
 		"username":      "engineer_new",
-		"phone_number":  "+19999999",
+		"phone_number":  "+1999999999",
 		"email":         "new@example.com",
 		"role_id":       2, // Engineer role
 		"group_id":      1, // Development group

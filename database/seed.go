@@ -91,6 +91,7 @@ func SeedDatabase() {
 			Username:           adminUser,
 			PasswordHash:       string(hashedPassword),
 			PhoneNumber:        "+1000000000",
+			Status:             "Active",
 			RoleID:             &adminRole.ID,
 			GroupID:            &securityGroup.ID,
 			MustChangePassword: true,

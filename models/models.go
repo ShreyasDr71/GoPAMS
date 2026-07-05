@@ -39,6 +39,8 @@ type User struct {
 	PhoneNumber        string         `json:"phone_number"`
 	Email              *string        `json:"email"`
 	EmployeeID         *string        `json:"employee_id"`
+	Status             string         `gorm:"type:varchar(20);not null;default:'Active'" json:"status"`
+	LastLoginAt        *time.Time     `json:"last_login_at"`
 	GroupID            *uint          `json:"group_id"`
 	Group              *Group         `gorm:"foreignKey:GroupID" json:"group,omitempty"`
 	RoleID             *uint          `json:"role_id"`
